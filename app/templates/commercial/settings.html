@@ -1,0 +1,388 @@
+{% extends 'layout.html' %}
+{% block title %}Paramètres - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Paramètres</h1>
+            <p class="text-muted-foreground">Configurez votre application BelOeuf</p>
+        </div>
+        <button class="btn btn-primary">
+            <i data-lucide="save" class="w-4 h-4"></i>
+            Enregistrer
+        </button>
+    </div>
+
+    <!-- Tabs navigation -->
+    <div class="flex border-b border-border mb-6">
+        <button class="tab-btn active" onclick="switchTab('general')">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            Général
+        </button>
+        <button class="tab-btn" onclick="switchTab('notifications')">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            Notifications
+        </button>
+        <button class="tab-btn" onclick="switchTab('security')">
+            <i data-lucide="shield" class="w-4 h-4"></i>
+            Sécurité
+        </button>
+        <button class="tab-btn" onclick="switchTab('backup')">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            Sauvegarde
+        </button>
+    </div>
+
+    <!-- General Tab -->
+    <div id="general" class="tab-content active">
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Informations de l'entreprise</h3>
+                    <p class="card-description">Paramètres généraux de votre société</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Nom de l'entreprise</label>
+                            <input type="text" class="input" value="BelOeuf SARL">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">SIRET</label>
+                            <input type="text" class="input" value="12345678901234">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Adresse</label>
+                            <textarea class="textarea">123 Route de la Ferme, 12345 Ville, France</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="input" value="+33 2 34 56 78 90">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="input" value="contact@beloeuf.fr">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Préférences système</h3>
+                    <p class="card-description">Configuration de l'interface</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Devise par défaut</label>
+                            <select class="select">
+                                <option value="EUR">Euro (€)</option>
+                                <option value="USD">Dollar ($)</option>
+                                <option value="GBP">Livre (£)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fuseau horaire</label>
+                            <select class="select">
+                                <option value="Europe/Paris">Europe/Paris (UTC+1)</option>
+                                <option value="Europe/London">Europe/London (UTC+0)</option>
+                                <option value="America/New_York">America/New_York (UTC-5)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Format de date</label>
+                            <select class="select">
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Langue</label>
+                            <select class="select">
+                                <option value="fr">Français</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div id="notifications" class="tab-content">
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Alertes de stock</h3>
+                    <p class="card-description">Configuration des notifications de stock</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Stock faible</p>
+                                <p class="text-sm text-muted-foreground">Alertes quand le stock atteint le seuil minimal</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Seuil d'alerte (plateaux)</label>
+                            <input type="number" class="input" value="50">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">DLUO proche</p>
+                                <p class="text-sm text-muted-foreground">Alertes pour les produits proche de la DLUO</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Alerte avant DLUO (jours)</label>
+                            <input type="number" class="input" value="3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Notifications commerciales</h3>
+                    <p class="card-description">Alertes sur l'activité commerciale</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Nouvelles commandes</p>
+                                <p class="text-sm text-muted-foreground">Notification à chaque nouvelle commande</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Paiements reçus</p>
+                                <p class="text-sm text-muted-foreground">Notification des paiements clients</p>
+                            </div>
+                            <input type="checkbox" class="checkbox">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Objectifs atteints</p>
+                                <p class="text-sm text-muted-foreground">Notification des objectifs de vente</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email de notification</label>
+                            <input type="email" class="input" value="admin@beloeuf.fr">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Tab -->
+    <div id="security" class="tab-content">
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Politique de mot de passe</h3>
+                    <p class="card-description">Sécurité des comptes utilisateurs</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Longueur minimale</label>
+                            <input type="number" class="input" value="8" min="6" max="20">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Caractères spéciaux requis</p>
+                                <p class="text-sm text-muted-foreground">Au moins un caractère spécial</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Majuscules et minuscules</p>
+                                <p class="text-sm text-muted-foreground">Mélange de casse obligatoire</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expiration (jours)</label>
+                            <input type="number" class="input" value="90">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sessions utilisateur</h3>
+                    <p class="card-description">Gestion des connexions</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Durée de session (heures)</label>
+                            <input type="number" class="input" value="8" min="1" max="24">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Déconnexion automatique</p>
+                                <p class="text-sm text-muted-foreground">Déconnexion après inactivité</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inactivité max (minutes)</label>
+                            <input type="number" class="input" value="30">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Double authentification</p>
+                                <p class="text-sm text-muted-foreground">2FA pour les administrateurs</p>
+                            </div>
+                            <input type="checkbox" class="checkbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Tab -->
+    <div id="backup" class="tab-content">
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sauvegarde automatique</h3>
+                    <p class="card-description">Configuration des sauvegardes régulières</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Sauvegarde automatique</p>
+                                <p class="text-sm text-muted-foreground">Sauvegarde planifiée des données</p>
+                            </div>
+                            <input type="checkbox" class="checkbox" checked>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fréquence</label>
+                            <select class="select">
+                                <option value="daily">Quotidienne</option>
+                                <option value="weekly">Hebdomadaire</option>
+                                <option value="monthly">Mensuelle</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Heure de sauvegarde</label>
+                            <input type="time" class="input" value="02:00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rétention (jours)</label>
+                            <input type="number" class="input" value="30">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sauvegarde manuelle</h3>
+                    <p class="card-description">Actions de sauvegarde à la demande</p>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div class="p-4 bg-muted rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="font-medium">Dernière sauvegarde</p>
+                                <span class="badge badge-success">Réussie</span>
+                            </div>
+                            <p class="text-sm text-muted-foreground">24/11/2024 à 02:00</p>
+                            <p class="text-sm text-muted-foreground">Taille: 125 MB</p>
+                        </div>
+                        <button class="btn btn-primary w-full">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Créer une sauvegarde maintenant
+                        </button>
+                        <button class="btn btn-outline w-full">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            Restaurer une sauvegarde
+                        </button>
+                        <div class="text-sm text-muted-foreground text-center">
+                            <p>Format de sauvegarde: Base de données + fichiers</p>
+                            <p>Compression: ZIP chiffré</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: transparent;
+        color: hsl(var(--muted-foreground));
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+    .tab-btn:hover {
+        color: hsl(var(--foreground));
+        background: hsl(var(--muted) / 0.5);
+    }
+    .tab-btn.active {
+        color: hsl(var(--primary));
+        border-bottom-color: hsl(var(--primary));
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius-sm);
+        background: hsl(var(--background));
+        cursor: pointer;
+    }
+    .checkbox:checked {
+        background: hsl(var(--primary));
+        border-color: hsl(var(--primary));
+    }
+</style>
+
+<script>
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(tabName).classList.add('active');
+        event.target.closest('.tab-btn').classList.add('active');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

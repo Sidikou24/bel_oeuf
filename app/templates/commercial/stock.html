@@ -1,0 +1,296 @@
+{% extends 'layout.html' %}
+{% block title %}Stock - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Gestion du stock</h1>
+            <p class="text-muted-foreground">Suivez et gérez vos lots d'œufs</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-outline">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Exporter
+            </button>
+            <button class="btn btn-primary" onclick="openNewLotModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouveau lot
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Stock OK</p>
+                        <p class="text-2xl font-bold text-success">142</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-warning bg-warning/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Stock faible</p>
+                        <p class="text-2xl font-bold text-warning">8</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-destructive bg-destructive/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Rupture</p>
+                        <p class="text-2xl font-bold text-destructive">3</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center">
+                        <i data-lucide="x-circle" class="w-4 h-4 text-destructive"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total plateaux</p>
+                        <p class="text-2xl font-bold">15,420</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="package" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Rechercher un lot..." class="search-input" style="width: 300px;">
+                </div>
+                <select class="select w-48">
+                    <option value="">Tous les entrepôts</option>
+                    <option value="nord">Entrepôt Nord</option>
+                    <option value="sud">Entrepôt Sud</option>
+                    <option value="est">Entrepôt Est</option>
+                    <option value="ouest">Entrepôt Ouest</option>
+                </select>
+                <select class="select w-48">
+                    <option value="">Toutes les tailles</option>
+                    <option value="S">Taille S</option>
+                    <option value="M">Taille M</option>
+                    <option value="L">Taille L</option>
+                    <option value="XL">Taille XL</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Taille</th>
+                                        <th>Quantité</th>
+                                        <th>Entrepôt</th>
+                                        <th>Fournisseur</th>
+                                        <th>Date réception</th>
+                                        <th>DLUO</th>
+                                        <th>Prix unitaire</th>
+                                        <th>Taux casse</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-medium">LOT-2024-0156</td>
+                                        <td><span class="badge badge-secondary">L</span></td>
+                                        <td>450 plateaux</td>
+                                        <td>Entrepôt Nord</td>
+                                        <td>Ferme Dubois</td>
+                                        <td>22/11/2024</td>
+                                        <td>29/11/2024 <span class="text-xs text-warning">(7j)</span></td>
+                                        <td>€2.85</td>
+                                        <td>1.2%</td>
+                                        <td><span class="badge badge-success">OK</span></td>
+                                        <td>
+                                            <div class="flex gap-2">
+                                                <button class="btn btn-sm btn-ghost">
+                                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-ghost">
+                                                    <i data-lucide="edit" class="w-3 h-3"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-ghost text-destructive">
+                                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">LOT-2024-0155</td>
+                                        <td><span class="badge badge-secondary">M</span></td>
+                                        <td>320 plateaux</td>
+                                        <td>Entrepôt Sud</td>
+                                        <td>Élevage Martin</td>
+                                        <td>21/11/2024</td>
+                                        <td>28/11/2024 <span class="text-xs text-warning">(6j)</span></td>
+                                        <td>€2.65</td>
+                                        <td>0.8%</td>
+                                        <td><span class="badge badge-success">OK</span></td>
+                                        <td>
+                                            <div class="flex gap-2">
+                                                <button class="btn btn-sm btn-ghost">
+                                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-ghost">
+                                                    <i data-lucide="edit" class="w-3 h-3"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-ghost text-destructive">
+                                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">LOT-2024-0154</td>
+                                        <td><span class="badge badge-secondary">XL</span></td>
+                                        <td>45 plateaux</td>
+                                        <td>Entrepôt Nord</td>
+                                        <td>Ferme Bio Loire</td>
+                                        <td>20/11/2024</td>
+                                        <td>27/11/2024 <span class="text-xs text-error">(5j)</span></td>
+                                        <td>€3.20</td>
+                                        <td>2.1%</td>
+                                        <td><span class="badge badge-warning">Stock faible</span></td>
+                                        <td>
+                                            <div class="flex gap-2">
+                                                <button class="btn btn-sm btn-ghost">
+                                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-ghost">
+                                                    <i data-lucide="edit" class="w-3 h-3"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-ghost text-destructive">
+                                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                   
+                                </tbody>
+                            </table>
+        </div>
+    </div>
+
+    <!-- New Lot Modal -->
+    <div id="newLotModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau lot</h2>
+                <button class="modal-close" onclick="closeNewLotModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newLotForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Référence *</label>
+                            <input type="text" class="input" required placeholder="LOT-2024-XXXX">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Taille *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Quantité *</label>
+                            <input type="number" class="input" required placeholder="0" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Entrepôt *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner</option>
+                                <option value="nord">Entrepôt Nord</option>
+                                <option value="sud">Entrepôt Sud</option>
+                                <option value="est">Entrepôt Est</option>
+                                <option value="ouest">Entrepôt Ouest</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fournisseur *</label>
+                            <input type="text" class="input" required placeholder="Nom du fournisseur">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date réception *</label>
+                            <input type="date" class="input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">DLUO *</label>
+                            <input type="date" class="input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Prix unitaire (€)</label>
+                            <input type="number" class="input" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Taux casse (%)</label>
+                            <input type="number" class="input" placeholder="0.0" step="0.1" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Statut</label>
+                            <select class="select">
+                                <option value="ok">OK</option>
+                                <option value="faible">Stock faible</option>
+                                <option value="rupture">Rupture</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewLotModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer le lot</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openNewLotModal() {
+            document.getElementById('newLotModal').style.display = 'flex';
+        }
+        function closeNewLotModal() {
+            document.getElementById('newLotModal').style.display = 'none';
+        }
+        document.getElementById('newLotForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Lot créé avec succès!');
+            closeNewLotModal();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}

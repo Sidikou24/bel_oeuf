@@ -1,0 +1,265 @@
+{% extends 'layout.html' %}
+{% block title %}Clients - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Gestion des clients</h1>
+            <p class="text-muted-foreground">Gérez votre portefeuille clients</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-outline">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Rapports
+            </button>
+            <button class="btn btn-primary" onclick="openNewClientModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouveau client
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total clients</p>
+                        <p class="text-2xl font-bold">148</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="users" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Clients actifs</p>
+                        <p class="text-2xl font-bold text-success">132</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Chiffre d'affaires</p>
+                        <p class="text-2xl font-bold">€428,650</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="euro" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">CA mensuel</p>
+                        <p class="text-2xl font-bold">€38,420</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Rechercher un client..." class="search-input" style="width: 300px;">
+                </div>
+                <select class="select w-48">
+                    <option value="">Tous les types</option>
+                    <option value="restaurant">Restaurant</option>
+                    <option value="boulangerie">Boulangerie</option>
+                    <option value="supermarche">Supermarché</option>
+                    <option value="particulier">Particulier</option>
+                    <option value="grossiste">Grossiste</option>
+                </select>
+                <select class="select w-48">
+                    <option value="">Tous les statuts</option>
+                    <option value="actif">Actif</option>
+                    <option value="inactif">Inactif</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Contact</th>
+                        <th>Type</th>
+                        <th>Dernière commande</th>
+                        <th>Nb commandes</th>
+                        <th>Total achats</th>
+                        <th>CA mensuel</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ...existant: lignes de clients ... -->
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-medium">
+                                    RG
+                                </div>
+                                <div>
+                                    <p class="font-medium">Restaurant Le Gourmet</p>
+                                    <p class="text-sm text-muted-foreground">Cuisine traditionnelle française</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <p class="font-medium">Chef Martin</p>
+                                <p class="text-sm text-muted-foreground">chef@restaurant-gourmet.fr</p>
+                                <p class="text-sm text-muted-foreground">+33 1 23 45 67 89</p>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-success">Restaurant</span></td>
+                        <td>24/11/2024</td>
+                        <td>187</td>
+                        <td class="font-medium">€45,280</td>
+                        <td class="font-medium">€4,520</td>
+                        <td><span class="badge badge-success">Actif</span></td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-ghost">
+                                    <i data-lucide="edit" class="w-3 h-3"></i>
+                                </button>
+                                <button class="btn btn-sm btn-ghost text-destructive">
+                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ...autres clients... -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Client Modal -->
+    <div id="newClientModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau client</h2>
+                <button class="modal-close" onclick="closeNewClientModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newClientForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom du client *</label>
+                            <input type="text" class="input" required placeholder="Ex: Restaurant Le Gourmet">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type de client *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner un type</option>
+                                <option value="restaurant">Restaurant</option>
+                                <option value="boulangerie">Boulangerie</option>
+                                <option value="supermarche">Supermarché</option>
+                                <option value="particulier">Particulier</option>
+                                <option value="grossiste">Grossiste</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nom du contact *</label>
+                            <input type="text" class="input" required placeholder="Ex: Chef Martin">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="input" required placeholder="contact@client.fr">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone *</label>
+                            <input type="tel" class="input" required placeholder="+33 1 23 45 67 89">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">SIRET</label>
+                            <input type="text" class="input" placeholder="12345678901234">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse de facturation *</label>
+                        <textarea class="textarea" required placeholder="123 Rue du Commerce, 12345 Ville, France"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse de livraison</label>
+                        <textarea class="textarea" placeholder="Si différente de l'adresse de facturation"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="textarea" placeholder="Informations complémentaires, préférences, conditions particulières..."></textarea>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Conditions de paiement</label>
+                            <select class="select">
+                                <option value="comptant">Comptant</option>
+                                <option value="30j">30 jours</option>
+                                <option value="45j">45 jours</option>
+                                <option value="60j">60 jours</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Statut</label>
+                            <select class="select">
+                                <option value="actif">Actif</option>
+                                <option value="inactif">Inactif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewClientModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer le client</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openNewClientModal() {
+            document.getElementById('newClientModal').style.display = 'flex';
+        }
+        function closeNewClientModal() {
+            document.getElementById('newClientModal').style.display = 'none';
+        }
+        document.getElementById('newClientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Client créé avec succès!');
+            closeNewClientModal();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}

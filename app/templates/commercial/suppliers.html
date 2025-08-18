@@ -1,0 +1,262 @@
+{% extends 'layout.html' %}
+{% block title %}Fournisseurs - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Gestion des fournisseurs</h1>
+            <p class="text-muted-foreground">Gérez vos partenaires et fournisseurs</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-outline">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Rapports
+            </button>
+            <button class="btn btn-primary" onclick="openNewSupplierModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouveau fournisseur
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total fournisseurs</p>
+                        <p class="text-2xl font-bold">24</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="truck" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Fournisseurs actifs</p>
+                        <p class="text-2xl font-bold text-success">21</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total achats</p>
+                        <p class="text-2xl font-bold">€285,750</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="euro" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total commandes</p>
+                        <p class="text-2xl font-bold">1,247</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <i data-lucide="shopping-bag" class="w-4 h-4 text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Rechercher un fournisseur..." class="search-input" style="width: 300px;">
+                </div>
+                <select class="select w-48">
+                    <option value="">Tous les types</option>
+                    <option value="ferme">Ferme</option>
+                    <option value="cooperative">Coopérative</option>
+                    <option value="elevage">Élevage</option>
+                    <option value="distributeur">Distributeur</option>
+                </select>
+                <select class="select w-48">
+                    <option value="">Tous les statuts</option>
+                    <option value="actif">Actif</option>
+                    <option value="inactif">Inactif</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fournisseur</th>
+                        <th>Contact</th>
+                        <th>Type</th>
+                        <th>Dernier achat</th>
+                        <th>Total achats</th>
+                        <th>Nb commandes</th>
+                        <th>Note</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ...existant: lignes de fournisseurs ... -->
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-medium">FD</div>
+                                <div>
+                                    <p class="font-medium">Ferme Dubois</p>
+                                    <p class="text-sm text-muted-foreground">Élevage bio depuis 1985</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <p class="font-medium">Pierre Dubois</p>
+                                <p class="text-sm text-muted-foreground">pierre@ferme-dubois.fr</p>
+                                <p class="text-sm text-muted-foreground">+33 2 34 56 78 90</p>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-success">Ferme</span></td>
+                        <td>24/11/2024</td>
+                        <td class="font-medium">€45,280</td>
+                        <td>156</td>
+                        <td>
+                            <div class="flex items-center gap-1">
+                                <span class="text-warning">★★★★★</span>
+                                <span class="text-sm text-muted-foreground">(4.8)</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-success">Actif</span></td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-ghost">
+                                    <i data-lucide="edit" class="w-3 h-3"></i>
+                                </button>
+                                <button class="btn btn-sm btn-ghost text-destructive">
+                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ...autres fournisseurs... -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Supplier Modal -->
+    <div id="newSupplierModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau fournisseur</h2>
+                <button class="modal-close" onclick="closeNewSupplierModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newSupplierForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom de l'entreprise *</label>
+                            <input type="text" class="input" required placeholder="Ex: Ferme Dubois">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type d'entreprise *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner un type</option>
+                                <option value="ferme">Ferme</option>
+                                <option value="cooperative">Coopérative</option>
+                                <option value="elevage">Élevage</option>
+                                <option value="distributeur">Distributeur</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nom du contact *</label>
+                            <input type="text" class="input" required placeholder="Ex: Pierre Dubois">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="input" required placeholder="contact@entreprise.fr">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone *</label>
+                            <input type="tel" class="input" required placeholder="+33 2 34 56 78 90">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">SIRET</label>
+                            <input type="text" class="input" placeholder="12345678901234">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse complète *</label>
+                        <textarea class="textarea" required placeholder="123 Route de la Ferme, 12345 Ville, France"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="textarea" placeholder="Description de l'activité, spécialités, certifications..."></textarea>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Certifications</label>
+                            <select class="select">
+                                <option value="">Aucune certification particulière</option>
+                                <option value="bio">Agriculture Biologique</option>
+                                <option value="label-rouge">Label Rouge</option>
+                                <option value="aoc">AOC/AOP</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Statut</label>
+                            <select class="select">
+                                <option value="actif">Actif</option>
+                                <option value="inactif">Inactif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewSupplierModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer le fournisseur</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openNewSupplierModal() {
+            document.getElementById('newSupplierModal').style.display = 'flex';
+        }
+        function closeNewSupplierModal() {
+            document.getElementById('newSupplierModal').style.display = 'none';
+        }
+        document.getElementById('newSupplierForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Fournisseur créé avec succès!');
+            closeNewSupplierModal();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}

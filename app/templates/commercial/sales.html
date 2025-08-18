@@ -1,0 +1,252 @@
+{% extends 'layout.html' %}
+{% block title %}Ventes - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Gestion des ventes</h1>
+            <p class="text-muted-foreground">Suivez vos commandes et ventes</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-outline">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Exporter
+            </button>
+            <button class="btn btn-primary" onclick="openNewSaleModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouvelle vente
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total ventes</p>
+                        <p class="text-2xl font-bold">2,847</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Chiffre d'affaires</p>
+                        <p class="text-2xl font-bold text-success">€86,420</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="euro" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Œufs vendus</p>
+                        <p class="text-2xl font-bold">18,420</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="egg" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Prix moyen</p>
+                        <p class="text-2xl font-bold">€2.46</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Rechercher une vente..." class="search-input" style="width: 300px;">
+                </div>
+                <select class="select w-48">
+                    <option value="">Tous les statuts</option>
+                    <option value="en_cours">En cours</option>
+                    <option value="confirmee">Confirmée</option>
+                    <option value="livree">Livrée</option>
+                </select>
+                <select class="select w-48">
+                    <option value="">Tous les clients</option>
+                    <option value="restaurant">Restaurants</option>
+                    <option value="boulangerie">Boulangeries</option>
+                    <option value="supermarche">Supermarchés</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>N° Commande</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Articles</th>
+                        <th>Total</th>
+                        <th>Livraison</th>
+                        <th>Statut</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ...existant: lignes de ventes ... -->
+                    <tr>
+                        <td class="font-medium">V-2024-001</td>
+                        <td>15/01/2024</td>
+                        <td>Restaurant Le Gourmet</td>
+                        <td>120 × Gros, 80 × Moyen</td>
+                        <td class="font-medium">€47,60</td>
+                        <td>16/01/2024</td>
+                        <td><span class="badge badge-success">Livrée</span></td>
+                        <td class="text-right">
+                            <div class="flex justify-end gap-2">
+                                <button class="btn-icon btn-ghost">
+                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                </button>
+                                <button class="btn-icon btn-ghost">
+                                    <i data-lucide="edit" class="h-4 w-4"></i>
+                                </button>
+                                <button class="btn-icon btn-ghost">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ...autres ventes... -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Sale Modal -->
+    <div id="newSaleModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouvelle vente</h2>
+                <button class="modal-close" onclick="closeNewSaleModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newSaleForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Client *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner un client</option>
+                                <option value="Restaurant Le Gourmet">Restaurant Le Gourmet</option>
+                                <option value="Boulangerie Dupont">Boulangerie Dupont</option>
+                                <option value="Supermarché Central">Supermarché Central</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date de livraison *</label>
+                            <input type="date" class="input" required>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold mb-4">Articles</h3>
+                        <div id="saleItems">
+                            <div class="item-row">
+                                <div class="form-group">
+                                    <label class="form-label">Taille</label>
+                                    <select class="select">
+                                        <option value="Gros">Gros</option>
+                                        <option value="Moyen">Moyen</option>
+                                        <option value="Extra">Extra</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Quantité</label>
+                                    <input type="number" class="input" placeholder="0" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Prix unitaire (€)</label>
+                                    <input type="number" class="input" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Sous-total</label>
+                                    <input type="text" class="input" placeholder="0.00" readonly>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-ghost text-destructive" onclick="removeSaleItem(this)">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="addSaleItem()">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Ajouter un article
+                        </button>
+                    </div>
+                    <div class="form-total">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-semibold">Total de la vente:</span>
+                            <span class="text-2xl font-bold text-primary">€0.00</span>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewSaleModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer la vente</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openNewSaleModal() {
+            document.getElementById('newSaleModal').style.display = 'flex';
+        }
+        function closeNewSaleModal() {
+            document.getElementById('newSaleModal').style.display = 'none';
+        }
+        function addSaleItem() {
+            const container = document.getElementById('saleItems');
+            const newItem = container.querySelector('.item-row').cloneNode(true);
+            newItem.querySelectorAll('input, select').forEach(input => {
+                if (input.type === 'text' && input.hasAttribute('readonly')) return;
+                input.value = '';
+            });
+            container.appendChild(newItem);
+            lucide.createIcons();
+        }
+        function removeSaleItem(button) {
+            const container = document.getElementById('saleItems');
+            if (container.children.length > 1) {
+                button.closest('.item-row').remove();
+            }
+        }
+        document.getElementById('newSaleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Vente créée avec succès!');
+            closeNewSaleModal();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}

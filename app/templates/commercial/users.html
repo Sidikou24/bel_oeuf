@@ -1,0 +1,207 @@
+{% extends 'layout.html' %}
+{% block title %}Utilisateurs - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Gestion des utilisateurs</h1>
+            <p class="text-muted-foreground">Gérez les membres, rôles et accès à la plateforme</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-outline">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Rapports
+            </button>
+            <button class="btn btn-primary" onclick="openNewUserModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouvel utilisateur
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total utilisateurs</p>
+                        <p class="text-2xl font-bold">12</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="users" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Utilisateurs actifs</p>
+                        <p class="text-2xl font-bold text-success">10</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Administrateurs</p>
+                        <p class="text-2xl font-bold">2</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="shield" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Invitations en attente</p>
+                        <p class="text-2xl font-bold">1</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <i data-lucide="mail" class="w-4 h-4 text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Rechercher un utilisateur..." class="search-input" style="width: 300px;">
+                </div>
+                <select class="select w-48">
+                    <option value="">Tous les rôles</option>
+                    <option value="admin">Administrateur</option>
+                    <option value="manager">Manager</option>
+                    <option value="employe">Employé</option>
+                </select>
+                <select class="select w-48">
+                    <option value="">Tous les statuts</option>
+                    <option value="actif">Actif</option>
+                    <option value="inactif">Inactif</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Dernière connexion</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ...existant: lignes d'utilisateurs ... -->
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-medium">JD</div>
+                                <div>
+                                    <p class="font-medium">Julie Durand</p>
+                                    <p class="text-sm text-muted-foreground">Manager</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>julie.durand@beloeuf.fr</td>
+                        <td><span class="badge badge-info">Manager</span></td>
+                        <td>18/08/2025 09:42</td>
+                        <td><span class="badge badge-success">Actif</span></td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-ghost">
+                                    <i data-lucide="edit" class="w-3 h-3"></i>
+                                </button>
+                                <button class="btn btn-sm btn-ghost text-destructive">
+                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ...autres utilisateurs... -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New User Modal -->
+    <div id="newUserModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouvel utilisateur</h2>
+                <button class="modal-close" onclick="closeNewUserModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newUserForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom complet *</label>
+                            <input type="text" class="input" required placeholder="Ex: Julie Durand">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="input" required placeholder="utilisateur@beloeuf.fr">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rôle *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner un rôle</option>
+                                <option value="admin">Administrateur</option>
+                                <option value="manager">Manager</option>
+                                <option value="employe">Employé</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Statut</label>
+                            <select class="select">
+                                <option value="actif">Actif</option>
+                                <option value="inactif">Inactif</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewUserModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer l'utilisateur</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openNewUserModal() {
+            document.getElementById('newUserModal').style.display = 'flex';
+        }
+        function closeNewUserModal() {
+            document.getElementById('newUserModal').style.display = 'none';
+        }
+        document.getElementById('newUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Utilisateur créé avec succès!');
+            closeNewUserModal();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}

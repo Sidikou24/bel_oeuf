@@ -1,0 +1,208 @@
+{% extends 'layout.html' %}
+{% block title %}Rapports - BelOeuf{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Rapports & Analyses</h1>
+            <p class="text-muted-foreground">Consultez, exportez et générez des rapports d'activité</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-primary" onclick="openNewReportModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouveau rapport
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Rapports générés</p>
+                        <p class="text-2xl font-bold">18</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Exports PDF</p>
+                        <p class="text-2xl font-bold text-success">12</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="download" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Rapports d'activité</p>
+                        <p class="text-2xl font-bold">7</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="bar-chart" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Analyses personnalisées</p>
+                        <p class="text-2xl font-bold">3</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Rechercher un rapport..." class="search-input" style="width: 300px;">
+                </div>
+                <select class="select w-48">
+                    <option value="">Tous les types</option>
+                    <option value="activite">Activité</option>
+                    <option value="vente">Ventes</option>
+                    <option value="stock">Stock</option>
+                    <option value="personnalise">Personnalisé</option>
+                </select>
+                <select class="select w-48">
+                    <option value="">Tous les formats</option>
+                    <option value="pdf">PDF</option>
+                    <option value="csv">CSV</option>
+                    <option value="xlsx">Excel</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nom du rapport</th>
+                        <th>Type</th>
+                        <th>Date de création</th>
+                        <th>Format</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- ...existant: lignes de rapports ... -->
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="bar-chart" class="w-5 h-5 text-warning"></i>
+                                <div>
+                                    <p class="font-medium">Rapport d'activité - Août 2025</p>
+                                    <p class="text-sm text-muted-foreground">Synthèse des ventes et achats</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-info">Activité</span></td>
+                        <td>18/08/2025</td>
+                        <td><span class="badge badge-success">PDF</span></td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-ghost">
+                                    <i data-lucide="download" class="w-3 h-3"></i>
+                                </button>
+                                <button class="btn btn-sm btn-ghost">
+                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                </button>
+                                <button class="btn btn-sm btn-ghost text-destructive">
+                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- ...autres rapports... -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Report Modal -->
+    <div id="newReportModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau rapport</h2>
+                <button class="modal-close" onclick="closeNewReportModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newReportForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom du rapport *</label>
+                            <input type="text" class="input" required placeholder="Ex: Rapport d'activité Août 2025">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type de rapport *</label>
+                            <select class="select" required>
+                                <option value="">Sélectionner un type</option>
+                                <option value="activite">Activité</option>
+                                <option value="vente">Ventes</option>
+                                <option value="stock">Stock</option>
+                                <option value="personnalise">Personnalisé</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Format *</label>
+                            <select class="select" required>
+                                <option value="pdf">PDF</option>
+                                <option value="csv">CSV</option>
+                                <option value="xlsx">Excel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="textarea" placeholder="Description du rapport, période, etc..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewReportModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Générer le rapport</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openNewReportModal() {
+            document.getElementById('newReportModal').style.display = 'flex';
+        }
+        function closeNewReportModal() {
+            document.getElementById('newReportModal').style.display = 'none';
+        }
+        document.getElementById('newReportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Rapport généré avec succès!');
+            closeNewReportModal();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}
