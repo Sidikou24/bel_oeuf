@@ -25,11 +25,11 @@ def create_app(config_class=Config):
     login_manager.login_message_category = 'info'
     
     # Blueprints
-    from routes.auth import bp as auth_bp
-    from routes.commercial import bp as commercial_bp
-    from routes.responsable import bp as responsable_bp
-    from routes.admin import bp as admin_bp
-    from routes.api import bp as api_bp
+    from app.routes.auth import bp as auth_bp
+    from app.routes.commercial import bp as commercial_bp
+    from app.routes.responsable import bp as responsable_bp
+    from app.routes.admin import bp as admin_bp
+    from app.routes.api import bp as api_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(commercial_bp, url_prefix='/commercial')
