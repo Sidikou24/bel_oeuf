@@ -31,7 +31,67 @@ def stats():
 @login_required
 @commercial_required
 def clients():
-    return render_template('commercial/clients.html')
+    page = request.args.get('page', default=1, type=int)
+    q = request.args.get('q', default='', type=str) or ''
+    pagination = CommercialService.get_clients_paginated(page=page, per_page=20, search=q)
+    total_clients = pagination.total
+    return render_template(
+        'commercial/clients.html',
+        pagination=pagination,
+        clients=pagination.items,
+        q=q,
+        total_clients=total_clients
+    )
+
+@bp.route('/clients/nouveau', methods=['POST'])
+@login_required
+@commercial_required
+def creer_client():
+    try:
+        client = CommercialService.creer_client(
+            nom=request.form.get('nom'),
+            prenom=request.form.get('prenom'),
+            telephone=request.form.get('telephone'),
+            email=request.form.get('email'),
+            adresse=request.form.get('adresse'),
+            ville=request.form.get('ville'),
+            code_postal=request.form.get('code_postal'),
+            notes=request.form.get('notes'),
+            created_by_user_id=current_user.id
+        )
+        flash('Client créé avec succès', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
+    except Exception:
+        db.session.rollback()
+        flash("Une erreur est survenue lors de la création du client", 'danger')
+    return redirect(url_for('commercial.clients'))
+
+@bp.route('/clients/<int:client_id>/modifier', methods=['POST'])
+@login_required
+@commercial_required
+def modifier_client(client_id):
+    try:
+        data = {
+            'nom': request.form.get('nom'),
+            'prenom': request.form.get('prenom'),
+            'telephone': request.form.get('telephone'),
+            'email': request.form.get('email'),
+            'adresse': request.form.get('adresse'),
+            'ville': request.form.get('ville'),
+            'code_postal': request.form.get('code_postal'),
+            'notes': request.form.get('notes')
+        }
+        # Nettoyer les valeurs vides -> None
+        data = {k: (v if v is not None and v.strip() != '' else None) for k, v in data.items()}
+        CommercialService.modifier_client(client_id, **data)
+        flash('Client modifié avec succès', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
+    except Exception:
+        db.session.rollback()
+        flash("Une erreur est survenue lors de la modification du client", 'danger')
+    return redirect(url_for('commercial.clients'))
 
 @bp.route('/sales')
 @login_required
