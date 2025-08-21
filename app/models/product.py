@@ -41,8 +41,13 @@ class Product(db.Model):
         return self.stock_quantity == 0
     
     def peut_vendre(self, quantite):
-        """Vérifie si on peut vendre la quantité demandée"""
-        return self.is_active and self.stock_quantity >= quantite
+        """Vérifie si on peut vendre la quantité demandée et retourne un message si non."""
+        if not self.is_active:
+            return (False, f"Le produit {self.name} n'est pas disponible à la vente.")
+        if self.stock_quantity < quantite:
+            return (False, f"Stock insuffisant pour {self.name} ({self.category}/{self.subcategory}) - Disponible : {self.stock_quantity} {self.unit}")
+        return (True, "")
+
     
     def diminuer_stock(self, quantite):
         """Diminue le stock après une vente"""
