@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.models import User, Commande, Client, Product, DetailCommande
 from app import db
+from app.services.commercial_service import CommercialService
 from app.utils.decorators import commercial_required
 from datetime import datetime
 import json
@@ -193,7 +194,7 @@ def new_sale():
         # 10. Commit final
         db.session.commit()
 
-        flash(f"Commande {commande.numero_commande} créée avec succès ✅ ({articles_ajoutes} articles)", "success")
+        #flash(f"Commande {commande.numero_commande} créée avec succès ✅ ({articles_ajoutes} articles)", "success")
         print(f"Commande créée: {commande.numero_commande}, Total: {commande.montant_total} FCFA")
 
     except Exception as e:
@@ -248,12 +249,12 @@ def creer_client():
             notes=request.form.get('notes'),
             created_by_user_id=current_user.id
         )
-        flash('Client créé avec succès', 'success')
+        #flash('Client créé avec succès', 'success')
     except ValueError as e:
         flash(str(e), 'danger')
     except Exception:
         db.session.rollback()
-        flash("Une erreur est survenue lors de la création du client", 'danger')
+        #flash("Une erreur est survenue lors de la création du client", 'danger')
     return redirect(url_for('commercial.clients'))
 
 @bp.route('/clients/<int:client_id>/modifier', methods=['POST'])
@@ -274,12 +275,12 @@ def modifier_client(client_id):
         # Nettoyer les valeurs vides -> None
         data = {k: (v if v is not None and v.strip() != '' else None) for k, v in data.items()}
         CommercialService.modifier_client(client_id, **data)
-        flash('Client modifié avec succès', 'success')
+        #flash('Client modifié avec succès', 'success')
     except ValueError as e:
         flash(str(e), 'danger')
     except Exception:
         db.session.rollback()
-        flash("Une erreur est survenue lors de la modification du client", 'danger')
+        #flash("Une erreur est survenue lors de la modification du client", 'danger')
     return redirect(url_for('commercial.clients'))
 
 

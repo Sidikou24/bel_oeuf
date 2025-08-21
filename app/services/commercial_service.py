@@ -174,9 +174,9 @@ class CommercialService:
                 # Mapping des statuts pour l'affichage
                 statut_labels = {
                     'en_attente': 'En attente',
-                    'validee': 'Validée',
-                    'livree': 'Livrée',
-                    'annulee': 'Annulée'
+                    'validée': 'Validée',
+                    'livrée': 'Livrée',
+                    'annulée': 'Annulée'
                 }
                 
                 commandes_data.append({
@@ -403,6 +403,42 @@ class CommercialService:
             }    
             
             
+    @staticmethod
+    def get_clients_paginated(page=1, per_page=20, search=''):
+        """
+        Récupère les clients paginés avec recherche optionnelle
+        
+        Args:
+            page (int): Numéro de page
+            per_page (int): Nombre d'éléments par page
+            search (str): Terme de recherche (nom, prénom, téléphone, email)
+        
+        Returns:
+            Pagination: Objet pagination SQLAlchemy
+        """
+        query = Client.query.filter_by(is_active=True)
+        
+        # Appliquer la recherche si fournie
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                or_(
+                    Client.nom.ilike(search_term),
+                    Client.prenom.ilike(search_term),
+                    Client.telephone.ilike(search_term),
+                    Client.email.ilike(search_term)
+                )
+            )
+        
+        # Trier par nom et prénom
+        query = query.order_by(Client.nom.asc(), Client.prenom.asc())
+        
+        return query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+
     @staticmethod
     def get_stats_stock():
         """Statistiques générales du stock"""
