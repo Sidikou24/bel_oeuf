@@ -19,43 +19,57 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-               
-                    <a href="{{ url_for('commercial.dashboard') }}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                {% if current_user.is_authenticated and (request.blueprint == 'responsable' or (current_user.role and current_user.role.name == 'responsable_commercial')) %}
+                    <a href="{{ url_for('responsable.dashboard') }}" class="nav-item {% if request.endpoint == 'responsable.dashboard' %}active{% endif %}">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Tableau de bord</span>
                     </a>
-                    <a href="{{ url_for('commercial.clients') }}" class="nav-item">
+                    <a href="{{ url_for('responsable.commandes') }}" class="nav-item {% if request.endpoint == 'responsable.commandes' %}active{% endif %}">
+                        <i data-lucide="shopping-cart"></i>
+                        <span>Commandes</span>
+                    </a>
+                    <a href="{{ url_for('responsable.paiements') }}" class="nav-item {% if request.endpoint == 'responsable.paiements' %}active{% endif %}">
+                        <i data-lucide="credit-card"></i>
+                        <span>Paiements</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('commercial.dashboard') }}" class="nav-item {% if request.endpoint == 'commercial.dashboard' %}active{% endif %}">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="{{ url_for('commercial.clients') }}" class="nav-item {% if request.endpoint == 'commercial.clients' %}active{% endif %}">
                         <i data-lucide="users"></i>
                         <span>Clients</span>
                     </a>
-                    <a href="{{ url_for('commercial.stock') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.stock') }}" class="nav-item {% if request.endpoint == 'commercial.stock' %}active{% endif %}">
                         <i data-lucide="package"></i>
                         <span>Stock</span>
                     </a>
-                    <a href="{{ url_for('commercial.sales') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.sales') }}" class="nav-item {% if request.endpoint == 'commercial.sales' %}active{% endif %}">
                         <i data-lucide="shopping-cart"></i>
                         <span>Ventes</span>
                     </a>
-                    <a href="{{ url_for('commercial.purchases') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.purchases') }}" class="nav-item {% if request.endpoint == 'commercial.purchases' %}active{% endif %}">
                         <i data-lucide="shopping-bag"></i>
                         <span>Achats</span>
                     </a>
-                    <a href="{{ url_for('commercial.suppliers') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.suppliers') }}" class="nav-item {% if request.endpoint == 'commercial.suppliers' %}active{% endif %}">
                         <i data-lucide="truck"></i>
                         <span>Fournisseurs</span>
                     </a>
-                    <a href="{{ url_for('commercial.users') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.users') }}" class="nav-item {% if request.endpoint == 'commercial.users' %}active{% endif %}">
                         <i data-lucide="user-circle"></i>
                         <span>Utilisateurs</span>
                     </a>
-                    <a href="{{ url_for('commercial.reports') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.reports') }}" class="nav-item {% if request.endpoint == 'commercial.reports' %}active{% endif %}">
                         <i data-lucide="bar-chart-3"></i>
                         <span>Rapports</span>
                     </a>
-                    <a href="{{ url_for('commercial.settings') }}" class="nav-item">
+                    <a href="{{ url_for('commercial.settings') }}" class="nav-item {% if request.endpoint == 'commercial.settings' %}active{% endif %}">
                         <i data-lucide="settings"></i>
                         <span>Paramètres</span>
                     </a>
+                {% endif %}
             </nav>
         </aside>
         <div class="flex-1 flex flex-col overflow-hidden">
@@ -77,6 +91,9 @@
                     <button class="notification-btn">
                         <i data-lucide="bell" style="width:20px;height:20px;color:#eab308;"></i>
                     </button>
+                    <a href="{{ url_for('auth.logout') }}" class="notification-btn" title="Déconnexion" style="display:inline-flex;align-items:center;justify-content:center;">
+                        <i data-lucide="log-out" style="width:20px;height:20px;color:#ef4444;"></i>
+                    </a>
                     <div class="user-menu">
                         <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="Avatar" class="avatar">
                     </div>

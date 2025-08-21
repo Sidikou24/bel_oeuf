@@ -1,0 +1,136 @@
+{% extends 'layout.html' %}
+{% block title %}Responsable - Commandes{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Commandes</h1>
+            <p class="text-muted-foreground">Liste des commandes</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total Commandes</p>
+                        <p class="text-2xl font-bold">{{ total_commandes }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+                        <div class="flex items-center justify-between gap-4">
+                            <form method="get" action="{{ url_for('responsable.commandes') }}" class="flex items-center gap-2">
+                                <div class="search-container">
+                                    <i data-lucide="search" class="search-icon"></i>
+                                    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher (commande ou client)" class="search-input" style="width: 280px;">
+                                </div>
+                                <select name="statut" class="input">
+                                    <option value="tous" {% if statut=='tous' %}selected{% endif %}>Tous les statuts</option>
+                                    <option value="en_cours" {% if statut=='en_cours' %}selected{% endif %}>En cours</option>
+                                    <option value="validee" {% if statut=='validee' %}selected{% endif %}>Validée</option>
+                                    <option value="annulee" {% if statut=='annulee' %}selected{% endif %}>Annulée</option>
+                                </select>
+                                <button class="btn btn-outline" type="submit">Filtrer</button>
+                            </form>
+                        </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID commande</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Montant total</th>
+                        <th>Statut</th>
+                        <th>Paiement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody">
+                {% for cmd in commandes %}
+                    <tr data-status="{{ cmd.statut }}">
+                        <td>{{ cmd.numero_commande }}</td>
+                        <td>{{ cmd.client.nom }} {{ cmd.client.prenom }}</td>
+                        <td>{{ cmd.date_creation.strftime('%d/%m/%Y') if cmd.date_creation else '' }}</td>
+                        <td>{{ '%.0f'|format(cmd.montant_total) }} FCFA</td>
+                        <td>
+                            {% if cmd.statut == 'validee' %}
+                                <span class="badge badge-success">Validée</span>
+                            {% elif cmd.statut == 'annulee' %}
+                                <span class="badge badge-destructive">Annulée</span>
+                            {% elif cmd.statut == 'en_attente' %}
+                                <span class="badge">En cours</span>
+                            {% else %}
+                                <span class="badge">{{ cmd.statut }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <div class="w-24 h-2 rounded bg-gray-200 overflow-hidden">
+                                    <div class="h-2 bg-primary" style="width: {{ cmd.pourcentage_paye|int }}%;"></div>
+                                </div>
+                                <span class="text-sm text-muted-foreground">{{ cmd.pourcentage_paye|int }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-ghost" title="Détails" onclick="openOrderDetailsById({{ cmd.id }})"><i data-lucide='eye' class='w-3 h-3'></i></button>
+                                <button class="btn btn-sm btn-outline" title="Valider" {% if cmd.statut != 'en_attente' %}disabled{% endif %} onclick="openValidateModalById({{ cmd.id }})"><i data-lucide='check' class='w-3 h-3'></i></button>
+                                <button class="btn btn-sm btn-outline" title="Annuler" {% if cmd.statut == 'annulee' %}disabled{% endif %} onclick="openCancelModalById({{ cmd.id }})"><i data-lucide='x' class='w-3 h-3'></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted-foreground">Aucune commande trouvée.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between p-4">
+        <div class="text-sm text-muted-foreground">
+            Page {{ pagination.page }} / {{ pagination.pages if pagination.pages else 1 }}
+        </div>
+        <div class="flex gap-2">
+            {% if pagination.has_prev %}
+            <a class="btn btn-outline btn-sm" href="{{ url_for('responsable.commandes', page=pagination.prev_num, q=q, statut=statut) }}">Précédent</a>
+            {% else %}
+            <button class="btn btn-outline btn-sm" disabled>Précédent</button>
+            {% endif %}
+            {% if pagination.has_next %}
+            <a class="btn btn-outline btn-sm" href="{{ url_for('responsable.commandes', page=pagination.next_num, q=q, statut=statut) }}">Suivant</a>
+            {% else %}
+            <button class="btn btn-outline btn-sm" disabled>Suivant</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modales importées du dashboard -->
+    {% include 'responsable/_modals.html' %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</div>
+{% endblock %}
