@@ -1,7 +1,3 @@
-    <!-- Choices.js pour select avec recherche -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-    <script src="{{ url_for('static', filename='js/choices-init.js') }}"></script>
 {% extends 'layout.html' %}
 {% block title %}Achats - BelOeuf{% endblock %}
 {% block content %}
@@ -28,24 +24,24 @@
             <div class="card-content">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-muted-foreground">Total achats</p>
-                        <p class="text-2xl font-bold">{{ stats_achats.total_achats }} FCFA</p>
+                        <p class="text-sm font-medium text-muted-foreground">Total commandes</p>
+                        <p class="text-2xl font-bold">156</p>
                     </div>
-                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
-                        <span class="font-bold text-warning text-lg">FCFA</span>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="shopping-bag" class="w-4 h-4 text-primary"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card border-success bg-success/5">
+        <div class="card">
             <div class="card-content">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-muted-foreground">Achats livrés</p>
-                        <p class="text-2xl font-bold text-success">{{ stats_achats.achats_livres }}</p>
+                        <p class="text-sm font-medium text-muted-foreground">Coût total</p>
+                        <p class="text-2xl font-bold">€45,280</p>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                        <i data-lucide="euro" class="w-4 h-4 text-success"></i>
                     </div>
                 </div>
             </div>
@@ -54,11 +50,11 @@
             <div class="card-content">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-muted-foreground">Achats en attente</p>
-                        <p class="text-2xl font-bold">{{ stats_achats.achats_en_attente }}</p>
+                        <p class="text-sm font-medium text-muted-foreground">Quantité totale</p>
+                        <p class="text-2xl font-bold">18,420</p>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
-                        <i data-lucide="clock" class="w-4 h-4 text-warning"></i>
+                        <i data-lucide="package" class="w-4 h-4 text-warning"></i>
                     </div>
                 </div>
             </div>
@@ -67,11 +63,11 @@
             <div class="card-content">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-muted-foreground">Achats annulés</p>
-                        <p class="text-2xl font-bold">{{ stats_achats.achats_annules }}</p>
+                        <p class="text-sm font-medium text-muted-foreground">Prix moyen</p>
+                        <p class="text-2xl font-bold">€2.46</p>
                     </div>
-                    <div class="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center">
-                        <i data-lucide="x-circle" class="w-4 h-4 text-destructive"></i>
+                    <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-secondary"></i>
                     </div>
                 </div>
             </div>
@@ -94,9 +90,9 @@
                 </select>
                 <select class="select w-48">
                     <option value="">Tous les fournisseurs</option>
-                    {% for fournisseur in fournisseurs %}
-                        <option value="{{ fournisseur.id }}">{{ fournisseur.nom_fournisseur }}</option>
-                    {% endfor %}
+                    <option value="ferme-dubois">Ferme Dubois</option>
+                    <option value="elevage-martin">Élevage Martin</option>
+                    <option value="ferme-bio-loire">Ferme Bio Loire</option>
                 </select>
             </div>
         </div>
@@ -107,66 +103,45 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Date achat</th>
+                        <th>N° Commande</th>
+                        <th>Date</th>
                         <th>Fournisseur</th>
-                        <th>Matière première</th>
+                        <th>Type/Taille</th>
                         <th>Quantité</th>
-                        <!-- <th>Prix unitaire</th> -->
-                        <th>Montant total</th>
+                        <th>Prix unitaire</th>
+                        <th>Total</th>
                         <th>Statut</th>
                         <th>Livraison prévue</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for appro in approvisionnements %}
+                    <!-- ...existant: lignes de commandes ... -->
                     <tr>
-                        <td>{{ appro.date_achat }}</td>
-                        <td>{{ appro.fournisseur.nom_fournisseur if appro.fournisseur else appro.fournisseur_id }}</td>
-                        <td>{{ appro.matiere.nom }}</td>
-                        <td>{{ appro.quantite }}</td>
-    
-                        <td>{{ appro.montant_total }}</td>
+                        <td class="font-medium">CMD-2024-0089</td>
+                        <td>24/11/2024</td>
+                        <td>Ferme Dubois</td>
+                        <td>Œufs L</td>
+                        <td>500 plateaux</td>
+                        <td>€2.85</td>
+                        <td class="font-medium">€1,425</td>
+                        <td><span class="badge badge-warning">En attente</span></td>
+                        <td>26/11/2024</td>
                         <td>
-                            {% if appro.statut == 'Livrée' or appro.statut == 'Confirmée' %}
-                                <span class="badge badge-success">{{ appro.statut }}</span>
-                            {% elif appro.statut == 'En attente' %}
-                                <span class="badge badge-warning">{{ appro.statut }}</span>
-                            {% elif appro.statut == 'Annulé' %}
-                                <span class="badge badge-destructive">{{ appro.statut }}</span>
-                            {% else %}
-                                <span class="badge badge-secondary">{{ appro.statut }}</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ appro.date_livraison_prevue or '' }}</td>
-                        <td>
-                            {% if appro.statut == 'Livrée' or appro.statut == 'Confirmée' %}
-                                <button class="btn btn-sm btn-ghost" title="Modification impossible" disabled>
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-ghost">
+                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                </button>
+                                <button class="btn btn-sm btn-ghost">
                                     <i data-lucide="edit" class="w-3 h-3"></i>
                                 </button>
-                            {% else %}
-                                <button class="btn btn-sm btn-ghost" title="Modifier"
-                                    onclick="openEditAchatModal({
-                                        id: '{{ appro.id|escape }}',
-                                        fournisseur_id: '{{ appro.fournisseur_id|escape }}',
-                                        matiere_id: '{{ appro.matiere_id|escape }}',
-                                        quantite: '{{ appro.quantite|escape }}',
-                                        statut: '{{ appro.statut|escape }}',
-                                        date_livraison_prevue: '{{ appro.date_livraison_prevue|escape }}'
-                                    })">
-                                    <i data-lucide="edit" class="w-3 h-3"></i>
-                                </button>
-                            {% endif %}
-                            <form method="POST" action="{{ url_for('commercial.supprimer_achat') }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="id" value="{{ appro.id }}">
-                                <button type="submit" class="btn btn-sm btn-ghost text-destructive" title="Supprimer" onclick="return confirm('Supprimer cet approvisionnement ?');">
+                                <button class="btn btn-sm btn-ghost text-destructive">
                                     <i data-lucide="trash-2" class="w-3 h-3"></i>
                                 </button>
-                            </form>
+                            </div>
                         </td>
                     </tr>
-                    {% endfor %}
+                    <!-- ...autres commandes... -->
                 </tbody>
             </table>
         </div>
@@ -182,140 +157,76 @@
                 </button>
             </div>
             <div class="modal-content">
-                <form id="newAchatForm" action="{{ url_for('commercial.ajouter_achat') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <form id="newPurchaseForm">
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">Fournisseur *</label>
-                            <select class="select" name="fournisseur_id" required>
+                            <select class="select" required>
                                 <option value="">Sélectionner un fournisseur</option>
-                                {% for fournisseur in fournisseurs %}
-                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom_fournisseur }}</option>
-                                {% endfor %}
+                                <option value="ferme-dubois">Ferme Dubois</option>
+                                <option value="elevage-martin">Élevage Martin</option>
+                                <option value="ferme-bio-loire">Ferme Bio Loire</option>
+                                <option value="cooperative-avicole">Coopérative Avicole</option>
+                                <option value="ferme-rousseau">Ferme Rousseau</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Matière première *</label>
-                            <select class="select" name="matiere_id" required>
-                                <option value="">Sélectionner une matière première</option>
-                                {% for matiere in matieres %}
-                                    <option value="{{ matiere.id }}">{{ matiere.nom }} (/{{ matiere.unite }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Quantité *</label>
-                            <input type="number" class="input" name="quantite" required step="0.01">
-                        </div>
-                        <!--
-                        <div class="form-group">
-                            <label class="form-label">Prix unitaire *</label>
-                            <input type="number" class="input" name="prix_unitaire" required step="0.01">
-                        </div>
-                        -->
+                            <label class="form-label">Date de livraison prévue *</label>
+                            <input type="date" class="input" required>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Statut</label>
-                        <select class="select" name="statut">
-                            <option value="En attente">En attente</option>
-                            <option value="Livrée">Livrée</option>
-                            <option value="Annulée">Annulée</option>
-                        </select>
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold mb-4">Articles commandés</h3>
+                        <div id="purchaseItems">
+                            <div class="item-row">
+                                <div class="form-group">
+                                    <label class="form-label">Type/Taille</label>
+                                    <select class="select">
+                                        <option value="">Sélectionner</option>
+                                        <option value="S">Œufs S</option>
+                                        <option value="M">Œufs M</option>
+                                        <option value="L">Œufs L</option>
+                                        <option value="XL">Œufs XL</option>
+                                        <option value="XL-bio">Œufs XL Bio</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Quantité (plateaux)</label>
+                                    <input type="number" class="input" placeholder="0" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Prix unitaire (€)</label>
+                                    <input type="number" class="input" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Total (€)</label>
+                                    <input type="text" class="input" placeholder="0.00" readonly>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-ghost text-destructive" onclick="removePurchaseItem(this)">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="addPurchaseItem()">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Ajouter un article
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Date livraison prévue</label>
-                        <input type="date" class="input" name="date_livraison_prevue">
+                    <div class="form-total">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-semibold">Total de la commande:</span>
+                            <span class="text-2xl font-bold text-primary">€0.00</span>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" onclick="closeNewPurchaseModal()">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Créer l'achat</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Achat Modal -->
-    <div id="editAchatModal" class="modal-overlay" style="display: none;">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 class="modal-title">Modifier l'achat</h2>
-                <button class="modal-close" onclick="closeEditAchatModal()">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-            <div class="modal-content">
-                <form id="editAchatForm" action="{{ url_for('commercial.modifier_achat') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="id" id="editAchatId">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Fournisseur *</label>
-                            <select class="select" name="fournisseur_id" id="editFournisseurId" required>
-                                <option value="">Sélectionner un fournisseur</option>
-                                {% for fournisseur in fournisseurs %}
-                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom_fournisseur }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Matière première *</label>
-                            <select class="select" name="matiere_id" id="editMatiereId" required>
-                                <option value="">Sélectionner une matière première</option>
-                                {% for matiere in matieres %}
-                                    <option value="{{ matiere.id }}">{{ matiere.nom }} ({{ matiere.unite }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Quantité *</label>
-                            <input type="number" class="input" name="quantite" id="editQuantite" required step="0.01">
-                        </div>
-                        <!--
-                        <div class="form-group">
-                            <label class="form-label">Prix unitaire *</label>
-                            <input type="number" class="input" name="prix_unitaire" id="editPrixUnitaire" required step="0.01">
-                        </div>
-                        -->
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Statut</label>
-                        <select class="select" name="statut" id="editStatut">
-                            <option value="En attente">En attente</option>
-                            <option value="Livrée">Livrée</option>
-                            <option value="Annulée">Annulée</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Date livraison prévue</label>
-                        <input type="date" class="input" name="date_livraison_prevue" id="editDateLivraisonPrevue">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline" onclick="closeEditAchatModal()">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                        <button type="submit" class="btn btn-primary">Créer la commande</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
     <script>
-        // Remplir le modal de modification avec les données de l'achat
-        function openEditAchatModal(achat) {
-            document.getElementById('editAchatId').value = achat.id;
-            document.getElementById('editFournisseurId').value = achat.fournisseur_id;
-            document.getElementById('editMatiereId').value = achat.matiere_id;
-            document.getElementById('editQuantite').value = achat.quantite;
-            // document.getElementById('editPrixUnitaire').value = achat.prix_unitaire;
-            document.getElementById('editStatut').value = achat.statut;
-            document.getElementById('editDateLivraisonPrevue').value = achat.date_livraison_prevue || '';
-            document.getElementById('editAchatModal').style.display = 'flex';
-            lucide.createIcons();
-        }
-        function closeEditAchatModal() {
-            document.getElementById('editAchatModal').style.display = 'none';
-        }
         function openNewPurchaseModal() {
             document.getElementById('newPurchaseModal').style.display = 'flex';
         }

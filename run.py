@@ -1,6 +1,6 @@
 import os
 from app import create_app, db
-from app.models import User, Role, Product, Client, Commande, DetailCommande, Paiement, Fournisseur, Achat, MatierePremiere, Approvisionnement
+from app.models import User, Role, Product, Client, Commande, DetailCommande, Paiement
 
 app = create_app()
 
@@ -14,11 +14,7 @@ def make_shell_context():
         'Client': Client,
         'Commande': Commande,
         'DetailCommande': DetailCommande,
-        'Paiement': Paiement,
-        'Fournisseur': Fournisseur,
-        'Achat': Achat,
-        'MatierePremiere': MatierePremiere,
-        'Approvisionnement': Approvisionnement
+        'Paiement': Paiement
     }
 
 @app.cli.command()
