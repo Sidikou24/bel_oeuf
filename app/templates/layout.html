@@ -1,0 +1,228 @@
+
+<style>
+:root {
+    --vert-principal: #2E7D32;
+    --vert-clair: #E8F5E9;
+    --vert-succes: #43A047;
+    --orange: #FFA726;
+    --rouge-doux: #FFCDD2;
+    --jaune-secondaire: #FFF176;
+    --noir: #212121;
+}
+.btn-primary, .btn-new {
+    background: var(--vert-principal);
+    color: #fff;
+    border: none;
+    transition: background 0.2s;
+}
+.btn-primary:hover, .btn-new:hover {
+    background: #256029;
+}
+.btn-warning {
+    background: var(--jaune-secondaire);
+    color: var(--noir);
+    border: none;
+}
+.btn-warning:hover {
+    background: #FFEE58;
+}
+.btn-danger {
+    background: var(--rouge-doux);
+    color: var(--noir);
+    border: none;
+}
+.btn-danger:hover {
+    background: #E57373;
+}
+.badge-success {
+    background: var(--vert-succes);
+    color: #fff;
+}
+.badge-warning {
+    background: var(--orange);
+    color: #fff;
+}
+.badge-danger {
+    background: var(--rouge-doux);
+    color: var(--noir);
+}
+.stats-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.stats-total {
+    color: var(--noir);
+}
+.stats-livres {
+    background: var(--vert-clair);
+    color: var(--vert-principal);
+}
+.stats-attente {
+    background: var(--orange);
+    color: #fff;
+}
+.stats-annules {
+    background: var(--rouge-doux);
+    color: var(--noir);
+}
+.sidebar-item:hover, .sidebar-item.active {
+    background: var(--vert-clair);
+    color: var(--vert-principal);
+    border-left: 4px solid var(--vert-principal);
+}
+.footer {
+    border-top: 1px solid var(--vert-clair);
+    color: var(--vert-principal);
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    text-align: center;
+}
+</style>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS (important pour les modals) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <title>{% block title %}BelOeuf Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/beloeuf.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="min-h-screen flex w-full bg-background">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-circle">B</div>
+                    <span class="logo-text">BelOeuf</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+               
+                    <a href="{{ url_for('commercial.dashboard') }}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="{{ url_for('commercial.clients') }}" class="nav-item">
+                        <i data-lucide="users"></i>
+                        <span>Clients</span>
+                    </a>
+                    <a href="{{ url_for('commercial.stock') }}" class="nav-item">
+                        <i data-lucide="package"></i>
+                        <span>Stock</span>
+                    </a>
+                    <a href="{{ url_for('commercial.sales') }}" class="nav-item">
+                        <i data-lucide="shopping-cart"></i>
+                        <span>Ventes</span>
+                    </a>
+                    <a href="{{ url_for('commercial.purchases') }}" class="nav-item">
+                        <i data-lucide="shopping-bag"></i>
+                        <span>Achats</span>
+                    </a>
+                    <a href="{{ url_for('commercial.suppliers') }}" class="nav-item">
+                        <i data-lucide="truck"></i>
+                        <span>Fournisseurs</span>
+                    </a>
+                    <a href="{{ url_for('commercial.users') }}" class="nav-item">
+                        <i data-lucide="user-circle"></i>
+                        <span>Utilisateurs</span>
+                    </a>
+                    <a href="{{ url_for('commercial.reports') }}" class="nav-item">
+                        <i data-lucide="bar-chart-3"></i>
+                        <span>Rapports</span>
+                    </a>
+                    <a href="{{ url_for('commercial.settings') }}" class="nav-item">
+                        <i data-lucide="settings"></i>
+                        <span>Paramètres</span>
+                    </a>
+            </nav>
+        </aside>
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="header-toggle" onclick="toggleSidebar()">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="search-container">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" placeholder="Rechercher..." class="search-input">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="theme-toggle" onclick="toggleTheme()">
+                        <i data-lucide="sun"></i>
+                    </button>
+                    <button class="notification-btn">
+                        <i data-lucide="bell" style="width:20px;height:20px;color:#eab308;"></i>
+                    </button>
+                    <div class="user-menu">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="Avatar" class="avatar">
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-auto p-6">
+                {% block content %}{% endblock %}
+            </main>
+            <footer class="footer" style="width:100%;background:#f8f9fa;color:#888;padding:1rem 0;text-align:center;font-size:0.95rem;margin-top:2rem;border-top:1px solid #eee;">
+                <span style="font-weight:600;letter-spacing:0.04em;color:#222;">GBM Software</span>
+                <span style="color:#eab308;font-weight:700;margin:0 0.3em;">✦</span>
+                <span style="font-style:italic;color:#666;">L’innovation au service de BelOeuf</span>
+            </footer>
+        </div>
+    </div>
+    <script>
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Dark mode toggle
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.toggle('dark');
+            // Stocke le choix dans le localStorage
+            if (isDark) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const themeBtn = document.querySelector('.theme-toggle i');
+            if (themeBtn) {
+                themeBtn.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+                lucide.createIcons();
+            }
+        }
+
+        // Applique le thème au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark');
+                updateThemeIcon(true);
+            } else {
+                document.body.classList.remove('dark');
+                updateThemeIcon(false);
+            }
+        });
+    </script>
+    
+</body>
+</html>
+

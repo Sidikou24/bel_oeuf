@@ -1,8 +1,7 @@
-# app/models/detail_commande.py
+# app/models/detail_commande.py - Version corrigée
 from app import db
 from datetime import datetime
 from app.models.product import Product
-# Remove direct import to avoid circular dependency
 from sqlalchemy.ext.hybrid import hybrid_property
 
 class DetailCommande(db.Model):
@@ -16,8 +15,8 @@ class DetailCommande(db.Model):
     
     # Détails de la ligne
     quantite = db.Column(db.Integer, nullable=False)
-    prix_unitaire = db.Column(db.Numeric(10, 2), nullable=False)  # Prix au moment de la commande
-    sous_total = db.Column(db.Numeric(10, 2), nullable=False)
+    prix_unitaire = db.Column(db.Numeric(10, 2), nullable=False)
+    sous_total = db.Column(db.Numeric(10, 2), nullable=False, default=0)
     
     # Notes spécifiques à cette ligne
     notes = db.Column(db.Text, nullable=True)
@@ -27,12 +26,16 @@ class DetailCommande(db.Model):
     
     def __init__(self, **kwargs):
         super(DetailCommande, self).__init__(**kwargs)
-        if self.quantite and self.prix_unitaire:
+        # Calculer le sous-total après l'initialisation si les valeurs sont présentes
+        if hasattr(self, 'quantite') and hasattr(self, 'prix_unitaire') and self.quantite and self.prix_unitaire:
             self.calculer_sous_total()
     
     def calculer_sous_total(self):
-        """Calcule le sous-total de cette ligne"""
-        self.sous_total = float(self.quantite) * float(self.prix_unitaire)
+        """Calcule et met à jour le sous-total"""
+        if self.quantite is not None and self.prix_unitaire is not None:
+            self.sous_total = float(self.quantite) * float(self.prix_unitaire)
+        else:
+            self.sous_total = 0
         return self.sous_total
     
     @hybrid_property
@@ -74,53 +77,4 @@ class DetailCommande(db.Model):
         self.commande.calculer_total()
     
     def __repr__(self):
-        return f'<DetailCommande {self.quantite}x {self.nom_produit} = {self.sous_total}€>'
-
-
-# Exemple d'utilisation dans un service
-class CommandeService:
-    @staticmethod
-    def creer_commande(client, commercial, produits_data):
-        """
-        Crée une nouvelle commande avec ses détails
-        
-        Args:
-            client: Instance de Client
-            commercial: Instance de User (commercial)
-            produits_data: Liste de dict {'product_id': int, 'quantite': int, 'prix_unitaire': float (optionnel)}
-        
-        Returns:
-            Commande: La nouvelle commande créée
-        """
-        commande = Commande(client=client, commercial=commercial)
-        db.session.add(commande)
-        db.session.flush()  # Pour avoir l'ID de la commande
-        
-        for data in produits_data:
-            product = Product.query.get(data['product_id'])
-            if not product:
-                raise ValueError(f"Produit {data['product_id']} introuvable")
-            
-            prix = data.get('prix_unitaire', product.price)
-            commande.ajouter_produit(product, data['quantite'], prix)
-        
-        db.session.commit()
-        return commande
-    
-    @staticmethod
-    def get_commandes_en_attente():
-        """Récupère toutes les commandes en attente de validation"""
-        return Commande.query.filter_by(statut='en_attente').order_by(Commande.date_creation.desc()).all()
-    
-    @staticmethod
-    def get_resume_paiements():
-        """Résumé des paiements par commande"""
-        return db.session.query(
-            Commande.numero_commande,
-            Commande.montant_total,
-            Commande.montant_paye,
-            (Commande.montant_total - Commande.montant_paye).label('montant_restant')
-        ).filter(
-            Commande.statut == 'validee',
-            Commande.montant_total > Commande.montant_paye
-        ).all()
+        return f'<DetailCommande {self.quantite}x {self.nom_produit} = {self.sous_total} FCFA>'

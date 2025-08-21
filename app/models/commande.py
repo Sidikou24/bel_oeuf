@@ -1,14 +1,14 @@
-# app/models/commande.py
+# app/models/commande.py - Version corrigée pour les warnings de session
 from app import db
 from datetime import datetime
 from sqlalchemy import func
-# Remove direct import to avoid circular dependency
+from sqlalchemy.orm import Session
 
 class Commande(db.Model):
     __tablename__ = 'commandes'
     
     id = db.Column(db.Integer, primary_key=True)
-    numero_commande = db.Column(db.String(20), unique=True, nullable=False)
+    numero_commande = db.Column(db.String(20), unique=True, nullable=True)
     
     # Relations
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
@@ -21,9 +21,9 @@ class Commande(db.Model):
     date_livraison_prevue = db.Column(db.DateTime, nullable=True)
     
     # Statuts
-    statut = db.Column(db.String(20), nullable=False, default='en_attente')  # en_attente, validee, annulee, livree
+    statut = db.Column(db.String(20), nullable=False, default='en_attente')
     
-    # Montants (calculés à partir des détails)
+    # Montants
     montant_total = db.Column(db.Numeric(10, 2), nullable=False, default=0)
     montant_paye = db.Column(db.Numeric(10, 2), nullable=False, default=0)
     
@@ -40,22 +40,37 @@ class Commande(db.Model):
     paiements = db.relationship('Paiement', backref='commande', lazy=True, cascade='all, delete-orphan')
     
     def __init__(self, **kwargs):
+        # Ne pas générer le numéro dans le constructeur
         super(Commande, self).__init__(**kwargs)
-        if not self.numero_commande:
-            self.numero_commande = self.generer_numero_commande()
+        # Le numéro sera généré lors de l'ajout à la session
+        #self.numero_commande = self.generer_numero_commande()  # Génère le numéro ici
     
     @staticmethod
     def generer_numero_commande():
-        """Génère un numéro de commande unique"""
+        """Génère un numéro de commande unique - Version sans conflit de session"""
         from datetime import datetime
-        timestamp = datetime.now().strftime('%Y%m%d')
+        import random
         
-        # Compter les commandes du jour
-        count = db.session.query(func.count(Commande.id)).filter(
-            func.date(Commande.date_creation) == func.date(datetime.utcnow())
-        ).scalar() or 0
-        
-        return f"CMD{timestamp}{count + 1:03d}"
+        # Utiliser une nouvelle session pour éviter les conflits
+        with db.engine.begin() as connection:
+            # Méthode simple et efficace : timestamp + random
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            random_suffix = random.randint(100, 999)
+            
+            # Vérifier l'unicité
+            numero_base = f"CMD{timestamp[-8:]}{random_suffix}"
+            
+            # Si par hasard il existe déjà, ajouter les microsecondes
+            existing_check = connection.execute(
+                db.text("SELECT COUNT(*) FROM commandes WHERE numero_commande = :numero"),
+                {"numero": numero_base}
+            ).scalar()
+            
+            if existing_check > 0:
+                microsecond = datetime.now().microsecond
+                numero_base = f"CMD{timestamp[-8:]}{microsecond:06d}"[:20]
+            
+            return numero_base
     
     @property
     def montant_restant(self):
@@ -72,39 +87,35 @@ class Commande(db.Model):
     @property
     def est_payee_entierement(self):
         """Vérifie si la commande est entièrement payée"""
-        return self.montant_restant <= 0.01  # Tolérance pour les erreurs d'arrondi
+        return self.montant_restant <= 0.01
     
     def calculer_total(self):
         """Recalcule le montant total à partir des détails"""
-        total = sum(detail.sous_total for detail in self.details)
-        self.montant_total = total
-        return total
+        if hasattr(self, 'details'):
+            total = sum(float(detail.sous_total or 0) for detail in self.details)
+            self.montant_total = total
+            return total
+        return 0
     
     def ajouter_produit(self, product, quantite, prix_unitaire=None):
         """Ajoute un produit à la commande"""
+        from app.models.detail_commande import DetailCommande
+        
         if prix_unitaire is None:
             prix_unitaire = product.price
-            
-        # Vérifier si le produit existe déjà dans la commande
-        detail_existant = DetailCommande.query.filter_by(
+        
+        # Créer le détail de commande
+        detail = DetailCommande(
             commande_id=self.id,
-            product_id=product.id
-        ).first()
+            product_id=product.id,
+            quantite=quantite,
+            prix_unitaire=prix_unitaire
+        )
+        detail.calculer_sous_total()
+        db.session.add(detail)
         
-        if detail_existant:
-            # Mettre à jour la quantité
-            detail_existant.quantite += quantite
-            detail_existant.calculer_sous_total()
-        else:
-            # Créer un nouveau détail
-            detail = DetailCommande(
-                commande=self,
-                product=product,
-                quantite=quantite,
-                prix_unitaire=prix_unitaire
-            )
-            db.session.add(detail)
-        
+        # Recalculer le total
+        db.session.flush()
         self.calculer_total()
     
     def peut_etre_validee(self):
