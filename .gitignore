@@ -6,8 +6,8 @@ __pycache__/
 venv/
 env/
 .env
-.qodo
-.venv
+#.qodo
+#.venv
 instance/
 .webassets-cache
 *.db
