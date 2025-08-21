@@ -87,10 +87,10 @@
             <td>{{ cmd.client.nom }} {{ cmd.client.prenom }}</td>
             <td>{{ cmd.date_creation.strftime('%d/%m/%Y') if cmd.date_creation else '' }}</td>
             <td>
-              {% if cmd.statut == 'validee' %}
-                <span class="badge badge-success">Validée</span>
-              {% elif cmd.statut == 'annulee' %}
-                <span class="badge badge-destructive">Annulée</span>
+              {% if cmd.statut == 'validée' %}
+                <span class="badge badge-success">validée</span>
+              {% elif cmd.statut == 'annulée' %}
+                <span class="badge badge-destructive">annulée</span>
               {% elif cmd.statut == 'en_attente' %}
                 <span class="badge">En cours</span>
               {% else %}

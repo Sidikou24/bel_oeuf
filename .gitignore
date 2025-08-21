@@ -6,8 +6,9 @@ __pycache__/
 venv/
 env/
 .env
-#.qodo
-#.venv
+.qodo
+.venv
+ferme.db
 instance/
 .webassets-cache
 *.db

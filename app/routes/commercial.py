@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from app.models import User, Commande, Client, Product, DetailCommande
 from app import db
 from app.services.commercial_service import CommercialService
+from services.commercials_service import get_fournisseurs, ajouter_fournisseur_service, modifier_fournisseur_service, get_achats, ajouter_achat_service, supprimer_achat_service
 from app.utils.decorators import commercial_required
 from datetime import datetime
 import json
@@ -447,16 +448,62 @@ def delete_product(id):
 
 
 @bp.route('/purchases')
-@login_required
-@commercial_required
 def purchases():
-    return render_template('commercial/purchases.html')
+    fournisseurs = get_fournisseurs()
+    from services.commercials_service import get_matieres, get_stats_achats
+    matieres = get_matieres()
+    achats = get_achats()
+    stats_achats = get_stats_achats()
+    return render_template('commercial/purchases.html', approvisionnements=achats, fournisseurs=fournisseurs, matieres=matieres, stats_achats=stats_achats)
+
+@bp.route('/purchases/ajouter', methods=['POST'])
+def ajouter_achat():
+    ajouter_achat_service(request.form)
+    return redirect(url_for('commercial.purchases'))
+
+
+@bp.route('/purchases/supprimer_achat', methods=['POST'])
+def supprimer_achat():
+    achat_id = request.form.get('id')
+    supprimer_achat_service(achat_id)
+    return redirect(url_for('commercial.purchases'))
+## ------------------------- ROUTES FOURNISSEURS -----------------------------
 
 @bp.route('/suppliers')
-@login_required
-@commercial_required
 def suppliers():
-    return render_template('commercial/suppliers.html')
+    from services.commercials_service import get_stats_fournisseurs
+    fournisseurs = get_fournisseurs()
+    stats_fournisseurs = get_stats_fournisseurs()
+    return render_template('commercial/suppliers.html', fournisseurs=fournisseurs, stats_fournisseurs=stats_fournisseurs)
+
+
+@bp.route('/suppliers/ajouter', methods=['POST'])
+def ajouter_supplier():
+    ajouter_fournisseur_service(request.form)
+    return redirect(url_for('commercial.suppliers'))
+
+
+# Route pour modifier un fournisseur
+@bp.route('/suppliers/modifier', methods=['POST'])
+def modifier_supplier():
+    modifier_fournisseur_service(request.form)
+    return redirect(url_for('commercial.suppliers'))
+
+
+# Route pour supprimer un fournisseur
+@bp.route('/suppliers/supprimer', methods=['POST'])
+def supprimer_supplier():
+    fournisseur_id = request.form.get('id')
+    from services.commercials_service import supprimer_fournisseur_service
+    supprimer_fournisseur_service(fournisseur_id)
+    return redirect(url_for('commercial.suppliers'))
+
+@bp.route('/purchases/modifier', methods=['POST'])
+def modifier_achat():
+    from services.commercials_service import modifier_achat_service
+    modifier_achat_service(request.form)
+    return redirect(url_for('commercial.purchases'))
+
 
 @bp.route('/users')
 @login_required

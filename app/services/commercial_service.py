@@ -5,6 +5,7 @@ from app.models import Client, Product, Commande, DetailCommande, User
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_, and_
 
+
 class CommercialService:
     
     @staticmethod
