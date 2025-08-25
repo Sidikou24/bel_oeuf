@@ -10,7 +10,7 @@ class MatierePremiere(db.Model):
     categorie = db.Column(db.String(50), nullable=False)
     sous_categorie = db.Column(db.String(100), nullable=True)
     unite = db.Column(db.String(20), nullable=False)
-    prix_unitaire = db.Column(db.Float, nullable=False, default=0.0)
+    prix_unitaire = db.Column(db.Integer, nullable=False, default=0.0)
     stock_actuel = db.Column(db.Integer, nullable=False, default=0)
     stock_minimum = db.Column(db.Integer, nullable=False, default=5)
     is_active = db.Column(db.Boolean, default=True)

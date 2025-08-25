@@ -16,7 +16,7 @@ class Product(db.Model):
     subcategory = db.Column(db.String(100), nullable=False)  # 'bio', 'fermier', 'pondeuse'
     
     # Prix et unité
-    price = db.Column(db.Numeric(10, 2), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
     unit = db.Column(db.String(20), nullable=False)  # 'piece', 'douzaine', 'kg'
     
     # Stock

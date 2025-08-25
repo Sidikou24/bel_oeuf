@@ -1,3 +1,4 @@
+<!--templates/commercial/sales.html-->
 {% extends 'layout.html' %}
 {% block title %}Ventes - BelOeuf{% endblock %}
 {% block content %}
@@ -72,7 +73,6 @@
                         <th>N° Commande</th>
                         <th>Date</th>
                         <th>Client</th>
-                        <th>Articles</th>
                         <th>Total</th>
                         <th>Payé</th>
                         <th>Livraison</th>
@@ -82,18 +82,13 @@
                 </thead>
                 <tbody>
                     {% for commande in commandes %}
-                    <tr data-statut="{{ commande.statut }}">
+                    <tr data-statut="{{ commande.statut }}" data-commande-id="{{ commande.id }}">
                         <td class="font-medium">{{ commande.numero_commande }}</td>
                         <td>{{ commande.date_creation.strftime('%d/%m/%Y') }}</td>
                         <td>{{ commande.client.nom_complet }}</td>
                             
-                        <td>
-                            {% for detail in commande.details %}
-                                {{ detail.quantite }} × {{ detail.product.name }}{% if not loop.last %}, {% endif %}
-                            {% endfor %}
-                        </td>
                         <td >{{ commande.montant_total }} FCFA </td>
-                        <td>{{ "%.2f"|format(commande.montant_paye) }} FCFA</td>  
+                        <td>{{ (commande.montant_paye) }} FCFA</td>  
                         <td>{{ commande.date_livraison_prevue.strftime('%d/%m/%Y') if commande.date_livraison_prevue else '' }}</td>
                         <td>
                             {% if commande.statut == 'en_attente' %}
@@ -108,7 +103,7 @@
                         </td>
                         <td class="text-right">
                             <div class="flex justify-end gap-2">
-                                <button class="btn-icon btn-ghost">
+                                <button class="btn-icon btn-ghost" onclick="openSaleDetails({{ commande.id }})" title="Voir les détails">
                                     <i data-lucide="eye" class="h-4 w-4"></i>
                                 </button>
                             </div>
@@ -171,7 +166,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Prix unitaire (FCFA) *</label>
-                                    <input type="number" class="input price" name="prix_unitaire[]" step="0.01" min="0" required>
+                                    <input type="number" class="input price" name="prix_unitaire[]" min="0" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Sous-total (FCFA)</label>
@@ -189,7 +184,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Montant payé (FCFA)</label>
-                        <input type="number" class="input" id="montant_paye" name="montant_paye" step="0.01" min="0" value="0">
+                        <input type="number" class="input" id="montant_paye" name="montant_paye" min="0" value="0">
                     </div>
                     <div class="form-total">
                         <div class="flex justify-between items-center">
@@ -204,6 +199,132 @@
                     <!-- Champ caché pour les items (JSON) -->
                     <input type="hidden" id="items_json" name="items">
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sale Details Modal -->
+    <div id="saleDetailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Détails de la vente <span id="saleOrderId" class="text-primary font-bold"></span></h2>
+                <button class="modal-close" onclick="closeSaleDetailsModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content space-y-6">
+                <!-- Informations générales -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card">
+                        <div class="card-content">
+                            <p class="text-sm text-muted-foreground mb-1">Client</p>
+                            <p class="font-semibold" id="saleClient">-</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-content">
+                            <p class="text-sm text-muted-foreground mb-1">Date de commande</p>
+                            <p class="font-semibold" id="saleDate">-</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-content">
+                            <p class="text-sm text-muted-foreground mb-1">Statut</p>
+                            <p class="font-semibold" id="saleStatus">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date de livraison -->
+                <div class="card">
+                    <div class="card-content">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="truck" class="w-4 h-4 text-muted-foreground"></i>
+                            <p class="text-sm text-muted-foreground mb-1">Date de livraison prévue</p>
+                        </div>
+                        <p class="font-semibold" id="saleDeliveryDate">-</p>
+                    </div>
+                </div>
+
+                <!-- Articles -->
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="package" class="w-5 h-5"></i>
+                            Articles commandés
+                        </h3>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Produit</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th class="text-right">Prix unitaire</th>
+                                        <th class="text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="saleArticles">
+                                    <!-- Articles will be populated here -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="border-t-2">
+                                        <td colspan="3" class="text-right font-bold text-lg">Total commande</td>
+                                        <td class="font-bold text-lg text-right" id="saleTotal">-</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paiement -->
+                <div class="card border-l-4 border-l-primary">
+                    <div class="card-content">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="credit-card" class="w-5 h-5"></i>
+                            Informations de paiement
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="text-center">
+                                <p class="text-sm text-muted-foreground">Montant total</p>
+                                <p class="text-xl font-bold" id="paymentTotal">-</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-muted-foreground">Déjà payé</p>
+                                <p class="text-xl font-bold text-success" id="paymentPaid">-</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-muted-foreground">Reste à payer</p>
+                                <p class="text-xl font-bold text-destructive" id="paymentRemaining">-</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 h-3 rounded bg-gray-200 overflow-hidden">
+                                <div id="paymentProgressBar" class="h-3 bg-gradient-to-r from-success to-primary transition-all duration-300"></div>
+                            </div>
+                            <span id="paymentProgressText" class="text-sm font-medium min-w-12">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div id="saleNotesContainer" class="card" style="display: none;">
+                    <div class="card-content">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                            Notes
+                        </h3>
+                        <p class="text-muted-foreground" id="saleNotes">-</p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeSaleDetailsModal()">Fermer</button>
+                    <button type="button" class="btn btn-primary" onclick="printSaleDetails()">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        Imprimer
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -245,7 +366,7 @@
                 return;
             }
             
-            const subtotal = (quantity * price).toFixed(2);
+            const subtotal = (quantity * price);
             row.querySelector('.subtotal').value = subtotal;
             calculateTotal();
         }
@@ -257,7 +378,7 @@
                 const subtotal = parseFloat(row.querySelector('.subtotal').value) || 0;
                 total += subtotal;
             });
-            document.getElementById('total').textContent = total.toFixed(2) + ' FCFA';
+            document.getElementById('total').textContent = total + ' FCFA';
         }
 
         function attachEventListeners(row) {
@@ -267,7 +388,7 @@
                 const stock = selectedOption.dataset.stock;
                 
                 if (price) {
-                    row.querySelector('.price').value = parseFloat(price).toFixed(2);
+                    row.querySelector('.price').value = parseFloat(price);
                     calculateSubtotal(row);
                 }
                 
@@ -419,6 +540,202 @@
             const statut = this.value;
             document.querySelectorAll('table tbody tr').forEach(row => {
                 if (statut === '' || row.dataset.statut === statut) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // === SALE DETAILS MODAL FUNCTIONS ===
+        
+        function showSaleDetailsModal() {
+            document.getElementById('saleDetailsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeSaleDetailsModal() {
+            document.getElementById('saleDetailsModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Formater le montant en FCFA
+        function formatFcfa(amount) {
+            return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
+        }
+
+        // Obtenir le libellé du statut avec badge coloré
+        function getStatusBadge(statut) {
+            const statusConfig = {
+                'en_attente': { label: 'En attente', class: 'badge badge-warning' },
+                'validée': { label: 'Validée', class: 'badge badge-success' },
+                'annulée': { label: 'Annulée', class: 'badge badge-danger' },
+                'livree': { label: 'Livrée', class: 'badge badge-info' }
+            };
+            const config = statusConfig[statut] || { label: statut, class: 'badge' };
+            return `<span class="${config.class}">${config.label}</span>`;
+        }
+
+        // Ouvrir les détails d'une vente
+        async function openSaleDetails(commandeId) {
+            // Afficher un loading
+            document.getElementById('saleOrderId').textContent = 'Chargement...';
+            showSaleDetailsModal();
+            
+            try {
+                const response = await fetch(`/commercial/sale/${commandeId}/details`);
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des détails');
+                }
+                
+                const saleData = await response.json();
+                
+                // Remplir les informations de la commande
+                document.getElementById('saleOrderId').textContent = saleData.numero_commande;
+                document.getElementById('saleClient').textContent = saleData.client.nom_complet;
+                document.getElementById('saleDate').textContent = saleData.date_creation;
+                document.getElementById('saleStatus').innerHTML = getStatusBadge(saleData.statut);
+                document.getElementById('saleDeliveryDate').textContent = saleData.date_livraison_prevue || 'Non spécifiée';
+                document.getElementById('saleTotal').textContent = formatFcfa(saleData.montant_total);
+                document.getElementById('paymentTotal').textContent = formatFcfa(saleData.montant_total);
+                document.getElementById('paymentPaid').textContent = formatFcfa(saleData.montant_paye);
+                document.getElementById('paymentRemaining').textContent = formatFcfa(saleData.montant_restant);
+                
+                // Mettre à jour la barre de progression
+                const progressBar = document.getElementById('paymentProgressBar');
+                const progressText = document.getElementById('paymentProgressText');
+                const percentage = Math.round(saleData.pourcentage_paye);
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = percentage + '%';
+                
+                // Changer la couleur de la barre selon le pourcentage
+                if (percentage < 50) {
+                    progressBar.className = 'h-3 bg-destructive transition-all duration-300';
+                } else if (percentage < 100) {
+                    progressBar.className = 'h-3 bg-warning transition-all duration-300';
+                } else {
+                    progressBar.className = 'h-3 bg-success transition-all duration-300';
+                }
+                
+                // Afficher les notes si elles existent
+                if (saleData.notes_commercial && saleData.notes_commercial.trim()) {
+                    document.getElementById('saleNotesContainer').style.display = 'block';
+                    document.getElementById('saleNotes').textContent = saleData.notes_commercial;
+                } else {
+                    document.getElementById('saleNotesContainer').style.display = 'none';
+                }
+                
+                // Remplir les articles
+                const articlesContainer = document.getElementById('saleArticles');
+                articlesContainer.innerHTML = '';
+                
+                if (saleData.articles && saleData.articles.length > 0) {
+                    saleData.articles.forEach(article => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <div class="font-medium">${article.nom_produit}</div>
+                                ${article.description && article.description.trim() ? `<div class="text-sm text-muted-foreground mt-1">${article.description}</div>` : ''}
+                            </td>
+                            <td class="text-center">
+                                <span class="font-medium">${article.quantite}</span>
+                                <span class="text-sm text-muted-foreground ml-1">${article.unite || 'unité(s)'}</span>
+                            </td>
+                            <td class="text-right font-medium">${formatFcfa(article.prix_unitaire)}</td>
+                            <td class="text-right font-bold">${formatFcfa(article.sous_total)}</td>
+                        `;
+                        articlesContainer.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="4" class="text-center text-muted-foreground py-8">
+                            <i data-lucide="package-x" class="w-8 h-8 mx-auto mb-2"></i>
+                            <p>Aucun article trouvé pour cette commande</p>
+                        </td>
+                    `;
+                    articlesContainer.appendChild(row);
+                }
+                
+                // Recharger les icônes lucide pour les nouveaux éléments
+                if (window.lucide) lucide.createIcons();
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                closeSaleDetailsModal();
+                alert('Erreur lors du chargement des détails de la vente');
+            }
+        }
+
+        // Fonction d'impression (optionnelle)
+        function printSaleDetails() {
+            window.print();
+        }
+
+        // Gestionnaires d'événements pour le modal
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fermer le modal en cliquant à l'extérieur
+            const modalOverlay = document.getElementById('saleDetailsModal');
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        closeSaleDetailsModal();
+                    }
+                });
+            }
+
+            // Fermer le modal avec la touche Échap
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (modalOverlay && modalOverlay.style.display === 'flex') {
+                        closeSaleDetailsModal();
+                    }
+                    if (document.getElementById('newSaleModal').style.display === 'flex') {
+                        closeNewSaleModal();
+                    }
+                }
+            });
+
+            // Recherche en temps réel
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    document.querySelectorAll('table tbody tr').forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        const matchesSearch = text.includes(searchTerm);
+                        const matchesFilter = checkStatusFilter(row);
+                        
+                        if (matchesSearch && matchesFilter) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+
+        // Fonction helper pour vérifier le filtre de statut
+        function checkStatusFilter(row) {
+            const statutFilter = document.getElementById('statutFilter');
+            const selectedStatus = statutFilter.value;
+            if (!selectedStatus) return true;
+            return row.dataset.statut === selectedStatus;
+        }
+
+        // Mettre à jour le filtre de statut pour tenir compte de la recherche
+        document.getElementById('statutFilter').addEventListener('change', function() {
+            const statut = this.value;
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+            
+            document.querySelectorAll('table tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matchesSearch = !searchTerm || text.includes(searchTerm);
+                const matchesFilter = !statut || row.dataset.statut === statut;
+                
+                if (matchesSearch && matchesFilter) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
