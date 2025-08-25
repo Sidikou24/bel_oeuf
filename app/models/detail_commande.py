@@ -15,8 +15,8 @@ class DetailCommande(db.Model):
     
     # Détails de la ligne
     quantite = db.Column(db.Integer, nullable=False)
-    prix_unitaire = db.Column(db.Numeric(10, 2), nullable=False)
-    sous_total = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    prix_unitaire = db.Column(db.Integer, nullable=False)
+    sous_total = db.Column(db.Integer, nullable=False, default=0)
     
     # Notes spécifiques à cette ligne
     notes = db.Column(db.Text, nullable=True)

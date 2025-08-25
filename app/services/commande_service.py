@@ -119,7 +119,7 @@ class CommandeService:
                     'statut': cmd.statut,
                     'statut_label': {
                         'en_attente': 'En attente',
-                        'validee': 'Validée',
+                        'validée': 'validée',
                         'annulee': 'Annulée',
                         'livree': 'Livrée'
                     }.get(cmd.statut, cmd.statut),
