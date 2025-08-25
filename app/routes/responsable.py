@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from app.models import User, Commande, Client, Product, Paiement
+from app.models import User, Commande, Client, Product, Paiement, Approvisionnement, MatierePremiere, Fournisseur
 from app import db
 from sqlalchemy import or_
 from datetime import datetime
+from app.utils.decorators import responsable_required  # Assurez-vous d'avoir ce décorateur
 
 bp = Blueprint('responsable', __name__)
 
@@ -224,3 +225,159 @@ def paiement_creer():
 @login_required
 def stats():
     return render_template('responsable/stats.html')
+
+# ---------------------------- GESTION DES ACHATS ----------------------------
+
+@bp.route('/purchases')
+@login_required
+@responsable_required
+def purchases():
+    """
+    Affiche la liste des achats (approvisionnements) avec leurs statuts.
+    Le responsable peut voir tous les achats et gérer leur validation.
+    """
+    from services.commercials_service import get_achats, get_stats_achats, get_fournisseurs, get_matieres
+    
+    # Récupération des données nécessaires
+    approvisionnements = Approvisionnement.query.order_by(Approvisionnement.date_achat.desc()).all()
+    fournisseurs = get_fournisseurs()
+    matieres = get_matieres()
+    stats_achats = get_stats_achats()
+    
+    return render_template('responsable/purchases.html',
+                         approvisionnements=approvisionnements,
+                         fournisseurs=fournisseurs,
+                         matieres=matieres,
+                         stats_achats=stats_achats)
+
+@bp.route('/purchases/<int:achat_id>/validate', methods=['POST'])
+@login_required
+@responsable_required
+def validate_purchase(achat_id):
+    """
+    Valide un achat en attente de validation.
+    L'achat passe au statut 'En attente de livraison'.
+    """
+    try:
+        achat = Approvisionnement.query.get_or_404(achat_id)
+        
+        # Vérifier que l'achat est en attente de validation
+        if achat.statut != 'En attente de validation':
+            return jsonify({
+                'success': False,
+                'error': 'Seuls les achats en attente de validation peuvent être validés'
+            }), 400
+        
+        # Mettre à jour le statut
+        achat.statut = 'En attente de livraison'
+        achat.validated_by_user_id = current_user.id
+        achat.validation_date = datetime.now()
+        
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/purchases/<int:achat_id>/reject', methods=['POST'])
+@login_required
+@responsable_required
+def reject_purchase(achat_id):
+    """
+    Refuse un achat en attente de validation.
+    L'achat passe au statut 'Non validé' avec un commentaire obligatoire.
+    """
+    try:
+        achat = Approvisionnement.query.get_or_404(achat_id)
+        
+        # Vérifier que l'achat est en attente de validation
+        if achat.statut != 'En attente de validation':
+            return jsonify({
+                'success': False,
+                'error': 'Seuls les achats en attente de validation peuvent être refusés'
+            }), 400
+            
+        # Récupérer le commentaire
+        data = request.get_json()
+        commentaire = data.get('commentaire', '').strip() if data else ''
+        if not commentaire:
+            return jsonify({
+                'success': False,
+                'error': 'Un commentaire est requis pour refuser un achat'
+            }), 400
+        
+        # Mettre à jour l'achat
+        achat.statut = 'Non validé'
+        achat.validated_by_user_id = current_user.id
+        achat.validation_date = datetime.now()
+        achat.commentaire = commentaire
+        
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/purchases/<int:achat_id>/deliver', methods=['POST'])
+@login_required
+@responsable_required
+def deliver_purchase(achat_id):
+    """
+    Marque un achat comme livré.
+    L'achat doit être au statut 'En attente de livraison'.
+    Met à jour automatiquement le stock de la matière première.
+    """
+    try:
+        achat = Approvisionnement.query.get_or_404(achat_id)
+        
+        # Vérifier que l'achat peut être livré
+        if achat.statut != 'En attente de livraison':
+            return jsonify({
+                'success': False,
+                'error': 'Seuls les achats en attente de livraison peuvent être marqués comme livrés'
+            }), 400
+            
+        # Mettre à jour l'achat
+        achat.statut = 'Livré'
+        achat.delivered_by_user_id = current_user.id
+        achat.date_livraison_reelle = datetime.now()
+        
+        # Mettre à jour le stock de la matière première
+        matiere = MatierePremiere.query.get(achat.matiere_id)
+        if matiere:
+            matiere.stock_actuel = matiere.stock_actuel + int(achat.quantite)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/purchases/<int:achat_id>/details', methods=['GET'])
+@login_required
+@responsable_required
+def purchase_details(achat_id):
+    """
+    Récupère les détails d'un achat spécifique.
+    Inclut l'historique des changements de statut.
+    """
+    achat = Approvisionnement.query.get_or_404(achat_id)
+    
+    return jsonify({
+        'id': achat.id,
+        'fournisseur': achat.fournisseur.nom_fournisseur if achat.fournisseur else None,
+        'matiere': achat.matiere.nom if achat.matiere else None,
+        'quantite': float(achat.quantite),
+        'prix_unitaire': float(achat.prix_unitaire),
+        'montant_total': float(achat.montant_total),
+        'statut': achat.statut,
+        'date_achat': achat.date_achat.strftime('%Y-%m-%d'),
+        'date_livraison_prevue': achat.date_livraison_prevue.strftime('%Y-%m-%d') if achat.date_livraison_prevue else None,
+        'date_livraison_reelle': achat.date_livraison_reelle.strftime('%Y-%m-%d') if achat.date_livraison_reelle else None,
+        'commentaire': achat.commentaire,
+        'validation_date': achat.validation_date.strftime('%Y-%m-%d %H:%M') if achat.validation_date else None,
+        'validated_by': achat.validated_by.username if hasattr(achat, 'validated_by') and achat.validated_by else None
+    })

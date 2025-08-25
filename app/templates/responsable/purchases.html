@@ -1,4 +1,4 @@
-{% extends 'layoutAmy.html' %}
+{% extends 'layoutResponsableAmy.html' %}
 {% block title %}Achats - BelOeuf{% endblock %}
 {% block content %}
  <link rel="stylesheet" href="{{ url_for('static', filename='css/beloeur.css') }}">
@@ -136,35 +136,42 @@
                             {% endif %}
                         </td>
                         <td>{{ appro.date_livraison_prevue or '' }}</td>
-                        <td>
-                            {% if appro.statut == 'En attente' %}
-                                <button class="btn btn-sm btn-success" title="Confirmer la livraison"
-                                    onclick="confirmerLivraison('{{ appro.id }}')">
+                        <td class="space-x-1">
+                            {% if appro.statut == 'En attente de validation' %}
+                                <!-- Boutons de validation/refus -->
+                                <!-- Bouton de validation -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-success" 
+                                        title="Valider l'achat"
+                                        onclick="validerAchat('{{ appro.id }}')">
                                     <i data-lucide="check" class="w-3 h-3"></i>
                                 </button>
-                                <button class="btn btn-sm btn-ghost" title="Modifier"
-                                    onclick="openEditAchatModal({
-                                        id: '{{ appro.id|escape }}',
-                                        fournisseur_id: '{{ appro.fournisseur_id|escape }}',
-                                        matiere_id: '{{ appro.matiere_id|escape }}',
-                                        quantite: '{{ appro.quantite|escape }}',
-                                        statut: '{{ appro.statut|escape }}',
-                                        date_livraison_prevue: '{{ appro.date_livraison_prevue|escape }}'
-                                    })">
-                                    <i data-lucide="edit" class="w-3 h-3"></i>
+
+                                <!-- Bouton de refus -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-destructive" 
+                                        title="Refuser l'achat"
+                                        onclick="refuserAchat('{{ appro.id }}')">
+                                    <i data-lucide="x" class="w-3 h-3"></i>
                                 </button>
-                            {% else %}
-                                <button class="btn btn-sm btn-ghost" title="Modification impossible" disabled>
-                                    <i data-lucide="edit" class="w-3 h-3"></i>
+
+                            {% elif appro.statut == 'En attente de livraison' %}
+                                <!-- Bouton pour marquer comme livré -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-warning" 
+                                        title="Marquer comme livré"
+                                        onclick="marquerLivre('{{ appro.id }}')">
+                                    <i data-lucide="truck" class="w-3 h-3"></i>
                                 </button>
                             {% endif %}
-                            <form method="POST" action="{{ url_for('commercial.supprimer_achat') }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="id" value="{{ appro.id }}">
-                                <button type="submit" class="btn btn-sm btn-ghost text-destructive" title="Supprimer" onclick="return confirm('Supprimer cet approvisionnement ?');">
-                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
-                                </button>
-                            </form>
+
+                            <!-- Bouton voir détails pour tous les statuts -->
+                            <button type="button" 
+                                    class="btn btn-sm btn-secondary" 
+                                    title="Voir les détails"
+                                    onclick="showDetails('{{ appro.id }}')">
+                                <i data-lucide="eye" class="w-3 h-3"></i>
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -208,20 +215,93 @@
                             <label class="form-label">Quantité *</label>
                             <input type="number" class="input" name="quantite" required step="0.01">
                         </div>
-                         <div class="form-group">
-                        <label class="form-label">Date livraison prévue</label>
-                        <input type="date" class="input" name="date_livraison_prevue">
-                       
+                        <!--
+                        <div class="form-group">
+                            <label class="form-label">Prix unitaire *</label>
+                            <input type="number" class="input" name="prix_unitaire" required step="0.01">
+                        </div>
+                        -->
                         </div>
                     </div>
-                   
-                   
+                    <div class="form-group">
+                        <label class="form-label">Statut</label>
+                        <select class="select" name="statut">
+                            <option value="En attente">En attente</option>
+                            <option value="Livrée">Livrée</option>
+                            <option value="Annulée">Annulée</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date livraison prévue</label>
+                        <input type="date" class="input" name="date_livraison_prevue">
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" onclick="closeNewPurchaseModal()">Annuler</button>
                         <button type="submit" class="btn btn-primary">Créer l'achat</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Détails Achat -->
+    <div id="detailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Détails de l'achat</h2>
+                <button class="modal-close" onclick="closeDetailsModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-muted-foreground">Fournisseur</p>
+                            <p class="font-medium" id="detail-fournisseur"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Matière première</p>
+                            <p class="font-medium" id="detail-matiere"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Quantité</p>
+                            <p class="font-medium" id="detail-quantite"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Prix unitaire</p>
+                            <p class="font-medium" id="detail-prix-unitaire"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Montant total</p>
+                            <p class="font-medium" id="detail-montant-total"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Statut</p>
+                            <p class="font-medium" id="detail-statut"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Date d'achat</p>
+                            <p class="font-medium" id="detail-date-achat"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Livraison prévue</p>
+                            <p class="font-medium" id="detail-date-livraison-prevue"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Livraison réelle</p>
+                            <p class="font-medium" id="detail-date-livraison-reelle"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Validation par</p>
+                            <p class="font-medium" id="detail-validated-by"></p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm text-muted-foreground">Commentaire</p>
+                        <p class="font-medium" id="detail-commentaire"></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -290,110 +370,120 @@
             </div>
         </div>
     </div>
-    <!-- Modal de confirmation de livraison -->
-    <div id="confirmLivraisonModal" class="modal-overlay" style="display: none;">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 class="modal-title">Confirmer la livraison</h2>
-                <button class="modal-close" onclick="closeConfirmLivraisonModal()">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-            <div class="modal-content">
-                <form id="confirmLivraisonForm" action="{{ url_for('commercial.confirmer_livraison') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="achat_id" id="livraisonAchatId">
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date de livraison</label>
-                        <input type="date" class="input" name="date_livraison" required value="{{ today }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Notes de livraison</label>
-                        <textarea class="textarea" name="notes_livraison" placeholder="Commentaires sur la livraison..."></textarea>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline" onclick="closeConfirmLivraisonModal()">Annuler</button>
-                        <button type="submit" class="btn btn-success">
-                            <i data-lucide="check" class="w-4 h-4 mr-2"></i>
-                            Confirmer la livraison
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Fonctions pour la confirmation de livraison
-        function confirmerLivraison(id) {
-            document.getElementById('livraisonAchatId').value = id;
-            document.getElementById('confirmLivraisonForm').reset();
-            // Set today's date by default
-            const today = new Date().toISOString().split('T')[0];
-            document.querySelector('input[name="date_livraison"]').value = today;
-            document.getElementById('confirmLivraisonModal').style.display = 'flex';
-            lucide.createIcons();
-        }
-
-        function closeConfirmLivraisonModal() {
-            document.getElementById('confirmLivraisonModal').style.display = 'none';
-        }
-
-        // Gestion du formulaire de confirmation de livraison
-        document.getElementById('confirmLivraisonForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Fonction pour envoyer une requête POST avec le token CSRF
+        async function sendPostRequest(url, data = {}) {
             try {
-                const form = this;
-                const formData = new FormData(form);
-
-                const response = await fetch(form.action, {
+                const response = await fetch(url, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(data)
                 });
-
-                const data = await response.json();
-                if (data.success) {
+                
+                if (!response.ok) {
+                    throw new Error('Erreur réseau');
+                }
+                
+                const result = await response.json();
+                if (result.success) {
                     window.location.reload();
                 } else {
-                    alert(data.error || 'Une erreur est survenue');
+                    alert(result.error || 'Une erreur est survenue');
                 }
             } catch (error) {
                 console.error('Erreur:', error);
-                alert('Une erreur est survenue lors de la confirmation de la livraison');
-            }
-        });
-        function openNewPurchaseModal() {
-            document.getElementById('newPurchaseModal').style.display = 'flex';
-        }
-        function closeNewPurchaseModal() {
-            document.getElementById('newPurchaseModal').style.display = 'none';
-        }
-        function addPurchaseItem() {
-            const container = document.getElementById('purchaseItems');
-            const newItem = container.querySelector('.item-row').cloneNode(true);
-            newItem.querySelectorAll('input, select').forEach(input => {
-                if (input.type === 'text' && input.hasAttribute('readonly')) return;
-                input.value = '';
-            });
-            container.appendChild(newItem);
-            lucide.createIcons();
-        }
-        function removePurchaseItem(button) {
-            const container = document.getElementById('purchaseItems');
-            if (container.children.length > 1) {
-                button.closest('.item-row').remove();
+                alert('Une erreur est survenue lors de l\'opération');
             }
         }
-        document.getElementById('newPurchaseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Commande créée avec succès!');
-            closeNewPurchaseModal();
-        });
+
+        // Fonction pour valider un achat
+        function validerAchat(id) {
+            if (confirm('Voulez-vous valider cet achat ?')) {
+                sendPostRequest(`/responsable/purchases/${id}/validate`);
+            }
+        }
+
+        // Fonction pour refuser un achat
+        function refuserAchat(id) {
+            const commentaire = prompt('Veuillez indiquer la raison du refus :');
+            if (commentaire) {
+                sendPostRequest(`/responsable/purchases/${id}/reject`, {
+                    commentaire: commentaire
+                });
+            }
+        }
+
+        // Fonction pour marquer un achat comme livré
+        function marquerLivre(id) {
+            if (confirm('Confirmer la livraison de cet achat ?')) {
+                sendPostRequest(`/responsable/purchases/${id}/deliver`);
+            }
+        }
+
+        // Fonction pour afficher les détails d'un achat
+        async function showDetails(id) {
+            try {
+                const response = await fetch(`/responsable/purchases/${id}/details`, {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des détails');
+                }
+                
+                const data = await response.json();
+                
+                // Remplir les champs du modal avec les données
+                document.getElementById('detail-fournisseur').textContent = data.fournisseur || 'Non spécifié';
+                document.getElementById('detail-matiere').textContent = data.matiere || 'Non spécifié';
+                document.getElementById('detail-quantite').textContent = data.quantite;
+                document.getElementById('detail-prix-unitaire').textContent = data.prix_unitaire + ' FCFA';
+                document.getElementById('detail-montant-total').textContent = data.montant_total + ' FCFA';
+                document.getElementById('detail-statut').textContent = data.statut;
+                document.getElementById('detail-date-achat').textContent = data.date_achat;
+                document.getElementById('detail-date-livraison-prevue').textContent = data.date_livraison_prevue || 'Non spécifiée';
+                document.getElementById('detail-date-livraison-reelle').textContent = data.date_livraison_reelle || 'Non livrée';
+                document.getElementById('detail-validated-by').textContent = data.validated_by || 'Non validé';
+                document.getElementById('detail-commentaire').textContent = data.commentaire || 'Aucun commentaire';
+                
+                // Afficher le modal
+                document.getElementById('detailsModal').style.display = 'block';
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de la récupération des détails');
+            }
+        }
+
+        // Fonction pour fermer le modal des détails
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+
+        // Initialisation au chargement de la page
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser les icônes Lucide
             lucide.createIcons();
+
+            // Fermer les alertes automatiquement après 5 secondes
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+
+            // Fermer le modal des détails quand on clique en dehors
+            window.onclick = function(event) {
+                const detailsModal = document.getElementById('detailsModal');
+                if (event.target === detailsModal) {
+                    detailsModal.style.display = 'none';
+                }
+            }
         });
     </script>
 </div>
