@@ -1,0 +1,447 @@
+{% extends 'layoutAmy.html' %}
+{% block title %}Matières Premières - BelOeuf{% endblock %}
+{% block content %}
+    <script>
+        function openEditMatiereModal(matiere) {
+            document.getElementById('editMatiereModal').style.display = 'flex';
+            // Set the form action URL with the correct ID
+            document.getElementById('editMatiereForm').action = `/commercial/matieres/${matiere.id}/edit`;
+            
+            // Remplir tous les champs avec les valeurs actuelles
+            document.getElementById('editMatiereId').value = matiere.id;
+            document.getElementById('editNom').value = matiere.nom || '';
+            document.getElementById('editDescription').value = matiere.description || '';
+            document.getElementById('editCategorie').value = matiere.categorie || '';
+            document.getElementById('editSousCategorie').value = matiere.sous_categorie || '';
+            document.getElementById('editUnite').value = matiere.unite || '';
+            document.getElementById('editPrixUnitaire').value = matiere.prix_unitaire || 0;
+            document.getElementById('editStockActuel').value = matiere.stock_actuel || 0;
+            document.getElementById('editStockMinimum').value = matiere.stock_minimum || 5;
+        }
+        function closeEditMatiereModal() {
+            document.getElementById('editMatiereModal').style.display = 'none';
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/beloeur.css') }}">
+
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Gestion des matières premières</h1>
+            <p class="text-muted-foreground">Gérez votre inventaire de matières premières</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-outline">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Rapports
+            </button>
+            <button class="btn btn-primary" onclick="openNewMatiereModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouvelle matière
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+        <div class="card">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Total matières</p>
+                        <p class="text-2xl font-bold">{{ stats.total_matieres }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <i data-lucide="box" class="w-4 h-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Stock OK</p>
+                        <p class="text-2xl font-bold text-success">{{ stats.stock_ok }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-warning bg-warning/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Stock faible</p>
+                        <p class="text-2xl font-bold text-warning">{{ stats.stock_faible }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-danger bg-danger/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Rupture stock</p>
+                        <p class="text-2xl font-bold text-danger">{{ stats.rupture }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-danger/20 flex items-center justify-center">
+                        <i data-lucide="x-circle" class="w-4 h-4 text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="flex gap-4 items-center">
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="searchMatiere" placeholder="Rechercher une matière première..." class="search-input" style="width: 300px;" onkeyup="filtrerMatieres()">
+                </div>
+                <select class="select w-48" onchange="filtrerMatieres()" id="filterCategorie">
+                    <option value="">Toutes les catégories</option>
+                    <option value="Aliments">Aliments</option>
+                    
+                    <option value="Médicaments">Médicaments</option>
+                    <option value="Matériel">Matériel</option>
+                    <option value="Hygiène">Hygiène</option>
+                    
+                </select>
+                <select class="select w-48" onchange="filtrerMatieres()" id="filterStock">
+                    <option value="">Tous les stocks</option>
+                    <option value="ok">Stock OK</option>
+                    <option value="faible">Stock faible</option>
+                    <option value="rupture">Rupture</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table class="table" id="matieresTable">
+                <thead>
+                    <tr>
+                        <th>Référence</th>
+                        <th>Nom</th>
+                        <th>Catégorie</th>
+                        <th>Stock actuel</th>
+                        
+                        <th>Prix unitaire</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for matiere in matieres %}
+                    <tr>
+                        <td>MP_00{{ matiere.id }}</td>
+                        <td>{{ matiere.nom }}</td>
+                        <td>{{ matiere.categorie }}</td>
+                        <td>
+                            {% if matiere.stock_actuel <= 0 %}
+                                <span class="badge badge-danger">{{ matiere.stock_actuel }} {{ matiere.unite }}</span>
+                            {% elif matiere.stock_actuel <= matiere.stock_minimum %}
+                                <span class="badge badge-warning">{{ matiere.stock_actuel }} {{ matiere.unite }}</span>
+                            {% else %}
+                                <span class="badge badge-success">{{ matiere.stock_actuel }} {{ matiere.unite }}</span>
+                            {% endif %}
+                        </td>
+                       
+                        <td>{{ matiere.prix_unitaire }} FCFA</td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <button class="btn btn-sm btn-success" title="Commander"
+                                    onclick='openNewAchatFromMatiere({
+                                        id: "{{ matiere.id }}",
+                                        nom: "{{ matiere.nom|escape }}",
+                                        unite: "{{ matiere.unite|escape }}",
+                                        prix_unitaire: "{{ matiere.prix_unitaire }}",
+                                        stock_actuel: "{{ matiere.stock_actuel }}"
+                                    })'>
+                                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" onclick='openEditMatiereModal({
+                                    id: "{{ matiere.id }}",
+                                    nom: "{{ matiere.nom|escape }}",
+                                    description: "{{ matiere.description|escape }}",
+                                    categorie: "{{ matiere.categorie|escape }}",
+                                    sous_categorie: "{{ matiere.sous_categorie|escape }}",
+                                    unite: "{{ matiere.unite|escape }}",
+                                    prix_unitaire: "{{ matiere.prix_unitaire }}",
+                                    stock_actuel: "{{ matiere.stock_actuel }}",
+                                    stock_minimum: "{{ matiere.stock_minimum }}"
+                                })'>
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('commercial.delete_matiere', id=matiere.id) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette matière première ?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Matiere Modal -->
+    <div id="newMatiereModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouvelle matière première</h2>
+                <button class="modal-close" onclick="closeNewMatiereModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newMatiereForm" action="{{ url_for('commercial.new_matiere') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom *</label>
+                            <input type="text" class="input" name="nom" required placeholder="Ex: Maïs">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Catégorie *</label>
+                            <select class="select" name="categorie" required>
+                                <option value="">Sélectionner une catégorie</option>
+                                
+                    <option value="Aliments">Aliments</option>
+                    
+                    <option value="Médicaments">Médicaments</option>
+                    <option value="Matériel">Matériel</option>
+                    <option value="Hygiène">Hygiène</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Unité *</label>
+                            <select class="select" name="unite" required>
+                                <option value="">Sélectionner une unité</option>
+                                 <option value="unité">Unité</option>
+                                  <option value="boîte">Boîte</option>
+                                <option value="sac">Sac</option>
+                                <option value="carton">Carton</option>
+                                <option value="kg">Kilogramme</option>
+                                <option value="l">Litre</option>
+                                <option value="pièce">Pièce</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Prix unitaire (FCFA) *</label>
+                            <input type="number" class="input" name="prix_unitaire" required min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock minimal *</label>
+                            <input type="number" class="input" name="stock_minimum" required min="0">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewMatiereModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer la matière première</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Matiere Modal -->
+    <div id="editMatiereModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Modifier la matière première</h2>
+                <button class="modal-close" onclick="closeEditMatiereModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="editMatiereForm" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="id" id="editMatiereId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom *</label>
+                            <input type="text" class="input" name="nom" id="editNom" required placeholder="Ex: Maïs">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Catégorie *</label>
+                            <select class="select" name="categorie" id="editCategorie" required>
+                                <option value="">Sélectionner une catégorie</option>
+                                <option value="Aliments">Aliments</option>
+                                <option value="Médicaments">Médicaments</option>
+                                <option value="Matériel">Matériel</option>
+                                <option value="Hygiène">Hygiène</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sous-catégorie</label>
+                            <input type="text" class="input" name="sous_categorie" id="editSousCategorie">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Unité *</label>
+                            <select class="select" name="unite" id="editUnite" required>
+                                <option value="">Sélectionner une unité</option>
+                                <option value="unité">Unité</option>
+                                <option value="boîte">Boîte</option>
+                                <option value="sac">Sac</option>
+                                <option value="carton">Carton</option>
+                                <option value="kg">Kilogramme</option>
+                                <option value="l">Litre</option>
+                                <option value="pièce">Pièce</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Prix unitaire (FCFA) *</label>
+                            <input type="number" class="input" name="prix_unitaire" id="editPrixUnitaire" required min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock actuel *</label>
+                            <input type="number" class="input" name="stock_actuel" id="editStockActuel" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock minimum *</label>
+                            <input type="number" class="input" name="stock_minimum" id="editStockMinimum" required min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="textarea" name="description" id="editDescription" placeholder="Description détaillée de la matière première"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeEditMatiereModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openNewMatiereModal() {
+            document.getElementById('newMatiereModal').style.display = 'flex';
+        }
+        function closeNewMatiereModal() {
+            document.getElementById('newMatiereModal').style.display = 'none';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            if (window.paginerTable) {
+                paginerTable('#matieresTable', 10, '#paginationMatieres');
+            }
+        });
+
+        function filtrerMatieres() {
+            const searchInput = document.getElementById('searchMatiere').value.toLowerCase();
+            const categorieFilter = document.getElementById('filterCategorie').value.toLowerCase();
+            const stockFilter = document.getElementById('filterStock').value;
+            
+            const rows = document.querySelectorAll('#matieresTable tbody tr');
+            
+            rows.forEach(row => {
+                const nom = row.cells[1].textContent.toLowerCase();
+                const categorie = row.cells[2].textContent.toLowerCase();
+                const stockCell = row.cells[3].querySelector('.badge');
+                const stockStatus = stockCell ? stockCell.classList.contains('badge-success') ? 'ok' :
+                                              stockCell.classList.contains('badge-warning') ? 'faible' :
+                                              'rupture' : '';
+                
+                const matchSearch = nom.includes(searchInput);
+                const matchCategorie = !categorieFilter || categorie === categorieFilter;
+                const matchStock = !stockFilter || stockStatus === stockFilter;
+                
+                row.style.display = matchSearch && matchCategorie && matchStock ? '' : 'none';
+            });
+        }
+        // Modal d'achat à partir d'une matière
+        function openNewAchatFromMatiere(matiere) {
+            document.getElementById('achatMatiereId').value = matiere.id;
+            document.getElementById('achatMatiereNom').textContent = matiere.nom;
+            document.getElementById('achatMatiereUnite').textContent = matiere.unite;
+            document.getElementById('achatMatierePrixUnitaire').value = matiere.prix_unitaire;
+            document.getElementById('newAchatModal').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeNewAchatModal() {
+            document.getElementById('newAchatModal').style.display = 'none';
+        }
+
+        // Calculer le montant total lors de la saisie de la quantité
+        document.getElementById('achatQuantite')?.addEventListener('input', function() {
+            const quantite = parseFloat(this.value) || 0;
+            const prixUnitaire = parseFloat(document.getElementById('achatMatierePrixUnitaire').value) || 0;
+            const montantTotal = quantite * prixUnitaire;
+            document.getElementById('achatMontantTotal').textContent = montantTotal.toLocaleString('fr-FR') + ' FCFA';
+        });
+    </script>
+
+    <!-- Modal Nouvel Achat -->
+    <div id="newAchatModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Commander une matière première</h2>
+                <button class="modal-close" onclick="closeNewAchatModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="newAchatForm" action="{{ url_for('commercial.ajouter_achat') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="matiere_id" id="achatMatiereId">
+                    
+                    <div class="mb-4">
+                        <div class="text-sm text-muted-foreground">Matière première</div>
+                        <div class="font-medium text-lg" id="achatMatiereNom"></div>
+                        <div class="text-sm text-muted-foreground">Unité: <span id="achatMatiereUnite"></span></div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Fournisseur *</label>
+                            <select class="select" name="fournisseur_id" required>
+                                <option value="">Sélectionner un fournisseur</option>
+                                {% for fournisseur in fournisseurs %}
+                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom_fournisseur }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Quantité *</label>
+                            <input type="number" class="input" name="quantite" id="achatQuantite" 
+                                required min="1" step="1" placeholder="Nombre d'unités">
+                        </div>
+
+                        <input type="hidden" name="prix_unitaire" id="achatMatierePrixUnitaire">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date de livraison prévue</label>
+                        <input type="date" class="input" name="date_livraison_prevue">
+                    </div>
+
+                   
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeNewAchatModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i>
+                            Commander
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

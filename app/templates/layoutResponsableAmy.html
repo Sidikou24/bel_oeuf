@@ -12,6 +12,7 @@
 
     <title>{% block title %}BelOeuf Dashboard{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/beloeuf.css') }}">
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/beloeur.css') }}">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -27,37 +28,65 @@
             </div>
             <nav class="sidebar-nav">
                
-                    <a href="{{ url_for('commercial.dashboard') }}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                    <!-- Dashboard -->
+                    <div class="nav-category">TABLEAU DE BORD</div>
+                    <a href="{{ url_for('responsable.dashboard') }}" class="nav-item {% if request.path == '/' %}active{% endif %}">
                         <i data-lucide="layout-dashboard"></i>
-                        <span>Tableau de bord</span>
+                        <span>Vue générale</span>
                     </a>
+
+                    <div class="nav-separator"></div>
+
+                    <!-- Gestion commerciale -->
+                    <div class="nav-category">GESTION COMMERCIALE</div>
                     <a href="{{ url_for('commercial.clients') }}" class="nav-item">
                         <i data-lucide="users"></i>
                         <span>Clients</span>
-                    </a>
-                    <a href="{{ url_for('commercial.stock') }}" class="nav-item">
-                        <i data-lucide="package"></i>
-                        <span>Stock</span>
                     </a>
                     <a href="{{ url_for('commercial.sales') }}" class="nav-item">
                         <i data-lucide="shopping-cart"></i>
                         <span>Ventes</span>
                     </a>
-                    <a href="{{ url_for('commercial.purchases') }}" class="nav-item">
+
+                    <a href="{{ url_for('commercial.stock') }}" class="nav-item">
+                        <i data-lucide="package"></i>
+                        <span>Stock</span>
+                    </a>
+
+                    <div class="nav-separator"></div>
+
+                    <!-- Stock -->
+                    <div class="nav-category">APPROVISIONNEMENT</div>
+                    <a href="{{ url_for('commercial.matieres') }}" class="nav-item">
+                        <i data-lucide="package"></i>
+                        <span>Matières Premières</span>
+                    </a>
+                    <a href="{{ url_for('responsable.purchases') }}" class="nav-item">
                         <i data-lucide="shopping-bag"></i>
                         <span>Achats</span>
                     </a>
+                    
                     <a href="{{ url_for('commercial.suppliers') }}" class="nav-item">
                         <i data-lucide="truck"></i>
                         <span>Fournisseurs</span>
                     </a>
-                    <a href="{{ url_for('commercial.users') }}" class="nav-item">
-                        <i data-lucide="user-circle"></i>
-                        <span>Utilisateurs</span>
-                    </a>
+
+                    <div class="nav-separator"></div>
+
+                    <!-- Rapports -->
+                    <div class="nav-category"></div>
                     <a href="{{ url_for('commercial.reports') }}" class="nav-item">
                         <i data-lucide="bar-chart-3"></i>
                         <span>Rapports</span>
+                    </a>
+
+                    <div class="nav-separator"></div>
+
+                    <!-- Configuration -->
+                    <div class="nav-category">CONFIGURATION</div>
+                    <a href="{{ url_for('commercial.users') }}" class="nav-item">
+                        <i data-lucide="user-circle"></i>
+                        <span>Utilisateurs</span>
                     </a>
                     <a href="{{ url_for('commercial.settings') }}" class="nav-item">
                         <i data-lucide="settings"></i>

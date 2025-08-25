@@ -1,7 +1,7 @@
 #routes/commercial.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from app.models import User, Commande, Client, Product, DetailCommande
+from app.models import User, Commande, Client, Product, DetailCommande, MatierePremiere
 from app import db
 from app.services.commercial_service import CommercialService
 from services.commercials_service import get_fournisseurs, ajouter_fournisseur_service, modifier_fournisseur_service, get_achats, ajouter_achat_service, supprimer_achat_service
@@ -448,13 +448,26 @@ def delete_product(id):
 
 
 @bp.route('/purchases')
+@login_required
+@commercial_required
 def purchases():
     fournisseurs = get_fournisseurs()
     from services.commercials_service import get_matieres, get_stats_achats
     matieres = get_matieres()
     achats = get_achats()
     stats_achats = get_stats_achats()
-    return render_template('commercial/purchases.html', approvisionnements=achats, fournisseurs=fournisseurs, matieres=matieres, stats_achats=stats_achats)
+    
+    # Debug des données
+    print("Fournisseurs:", len(fournisseurs))
+    print("Matières:", len(matieres))
+    print("Achats:", len(achats) if achats else 0)
+    print("Stats:", stats_achats)
+    
+    return render_template('commercial/purchases.html', 
+                         approvisionnements=achats, 
+                         fournisseurs=fournisseurs, 
+                         matieres=matieres, 
+                         stats_achats=stats_achats)
 
 @bp.route('/purchases/ajouter', methods=['POST'])
 def ajouter_achat():
@@ -471,10 +484,14 @@ def supprimer_achat():
 
 @bp.route('/suppliers')
 def suppliers():
-    from services.commercials_service import get_stats_fournisseurs
+    from services.commercials_service import get_stats_fournisseurs, get_matieres
     fournisseurs = get_fournisseurs()
     stats_fournisseurs = get_stats_fournisseurs()
-    return render_template('commercial/suppliers.html', fournisseurs=fournisseurs, stats_fournisseurs=stats_fournisseurs)
+    matieres = get_matieres()
+    return render_template('commercial/suppliers.html', 
+        fournisseurs=fournisseurs, 
+        stats_fournisseurs=stats_fournisseurs,
+        matieres=matieres)
 
 
 @bp.route('/suppliers/ajouter', methods=['POST'])
@@ -504,6 +521,111 @@ def modifier_achat():
     modifier_achat_service(request.form)
     return redirect(url_for('commercial.purchases'))
 
+@bp.route('/purchases/confirmer-livraison', methods=['POST'])
+def confirmer_livraison():
+    from services.commercials_service import confirmer_livraison_service
+    try:
+        success = confirmer_livraison_service(request.form)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+## ------------------------- ROUTES MATIERES PREMIERES -----------------------------
+
+@bp.route('/matieres')
+@login_required
+@commercial_required
+def matieres():
+    """Lister toutes les matières premières avec leur stock"""
+    from services.commercials_service import get_matieres, get_stats_matieres, get_categories_matieres, get_fournisseurs
+    matieres = get_matieres()
+    stats = get_stats_matieres()
+    categories = get_categories_matieres()
+    fournisseurs = get_fournisseurs()
+    return render_template('commercial/matieres.html', 
+        matieres=matieres,
+        stats=stats,
+        categories=categories,
+        fournisseurs=fournisseurs)
+
+@bp.route('/matieres/new', methods=['GET', 'POST'])
+@login_required
+@commercial_required
+def new_matiere():
+    """Ajouter une nouvelle matière première"""
+    if request.method == 'POST':
+        from services.commercials_service import ajouter_matiere_service
+        matiere, error = ajouter_matiere_service(request.form)
+        if error:
+            flash(error, 'error')
+        else:
+            flash(f'Matière première "{matiere.nom}" créée avec succès!', 'success')
+        return redirect(url_for('commercial.matieres'))
+    return redirect(url_for('commercial.matieres'))
+
+@bp.route('/matieres/<int:id>')
+@login_required
+@commercial_required
+def get_matiere(id):
+    """Obtenir les détails d'une matière première"""
+    matiere = MatierePremiere.query.get_or_404(id)
+    return jsonify({
+        'id': matiere.id,
+        'nom': matiere.nom,
+        'description': matiere.description,
+        'categorie': matiere.categorie,
+        'sous_categorie': matiere.sous_categorie,
+        'prix_unitaire': float(matiere.prix_unitaire),
+        'unite': matiere.unite,
+        'stock_actuel': matiere.stock_actuel,
+        'stock_minimum': matiere.stock_minimum,
+        'created_at': matiere.created_at.strftime('%d/%m/%Y %H:%M'),
+        'updated_at': matiere.updated_at.strftime('%d/%m/%Y %H:%M')
+    })
+
+@bp.route('/matieres/<int:id>/edit', methods=['POST'])
+@login_required
+@commercial_required
+def edit_matiere(id):
+    """Modifier une matière première"""
+    from services.commercials_service import modifier_matiere_service
+    matiere, error = modifier_matiere_service(id, request.form)
+    if error:
+        flash(error, 'error')
+    else:
+        flash(f'Matière première "{matiere.nom}" modifiée avec succès!', 'success')
+    return redirect(url_for('commercial.matieres'))
+
+@bp.route('/matieres/<int:id>/delete', methods=['POST'])
+@login_required
+@commercial_required
+def delete_matiere(id):
+    """Supprimer une matière première (soft delete)"""
+    from services.commercials_service import supprimer_matiere_service
+    success, error = supprimer_matiere_service(id)
+    if not success:
+        flash(error, 'error')
+    else:
+        flash('Matière première supprimée avec succès!', 'success')
+    return redirect(url_for('commercial.matieres'))
+
+@bp.route('/matieres/categories')
+@login_required
+@commercial_required
+def get_matiere_categories():
+    """Obtenir les catégories disponibles"""
+    from services.commercials_service import get_categories_matieres
+    categories = get_categories_matieres()
+    return jsonify({'categories': categories})
+
+@bp.route('/matieres/sous_categories/<categorie>')
+@login_required
+@commercial_required
+def get_matiere_sous_categories(categorie):
+    """Obtenir les sous-catégories pour une catégorie"""
+    from services.commercials_service import get_sous_categories_matieres
+    sous_categories = get_sous_categories_matieres(categorie)
+    return jsonify({'sous_categories': sous_categories})
 
 @bp.route('/users')
 @login_required

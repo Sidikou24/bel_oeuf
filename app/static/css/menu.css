@@ -1,0 +1,120 @@
+/* Variables de couleur */
+:root {
+    --primary: #16a34a;
+    --primary-light: rgba(22, 163, 74, 0.1);
+    --primary-lighter: rgba(22, 163, 74, 0.05);
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --hover-bg: #dcfce7;
+    --separator: #e2e8f0;
+}
+
+/* Menu principal */
+.sidebar-nav {
+    padding: 0.5rem 0;
+}
+
+/* Menu Categories */
+.nav-category {
+    color: var(--primary);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.6rem 1.25rem 0.2rem;
+    margin-top: 0.2rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.nav-category::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 14px;
+    background: var(--primary);
+    border-radius: 0 2px 2px 0;
+    opacity: 0.6;
+    transform: translateY(-50%);
+}
+
+/* Séparateurs */
+.nav-separator {
+    height: 1px;
+    background: linear-gradient(to right, var(--separator) 40%, transparent);
+    margin: 0.35rem 1rem 0.2rem;
+    position: relative;
+    opacity: 0.5;
+}
+
+.nav-separator::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, var(--primary-light), transparent);
+    top: -2px;
+}
+
+/* Items de navigation */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 1.25rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    margin: 0.1rem 0.75rem;
+    font-size: 0.7rem;
+    position: relative;
+    font-weight: 400;
+}
+
+.nav-item:hover {
+    background: var(--hover-bg);
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+.nav-item.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 0.4rem;
+    width: 0.4rem;
+    background: var(--primary);
+    border-radius: 50%;
+}
+
+.nav-item i {
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-right: 0.6rem;
+    flex-shrink: 0;
+    opacity: 0.75;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+}
+
+.nav-item:hover i {
+    opacity: 1;
+    color: var(--primary);
+}
+
+.nav-item.active i {
+    color: var(--primary);
+    opacity: 1;
+}
