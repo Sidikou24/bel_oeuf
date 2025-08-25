@@ -9,9 +9,10 @@ env/
 .qodo
 .venv
 ferme.db
-instance/
+instance
 .webassets-cache
 *.db
 migrations/versions/*.pyc
 .DS_Store
 *.log
+bel_oeuf
