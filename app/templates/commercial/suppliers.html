@@ -69,11 +69,11 @@
                     <div>
                         <p class="text-sm font-medium text-muted-foreground">Montant total achats fournisseurs</p>
                         <p class="text-2xl font-bold">
-                            {{ stats_fournisseurs.values()|map(attribute='montant_total')|sum if stats_fournisseurs else 0 }} FCFA
+                            {{ stats_fournisseurs.values()|map(attribute='montant_total')|sum if stats_fournisseurs else 0 }} 
                         </p>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
-                        <i data-lucide="euro" class="w-4 h-4 text-warning"></i>
+                        <i data-lucide="#" class="w-4 h-4 text-warning">Fr</i>
                     </div>
                 </div>
             </div>
