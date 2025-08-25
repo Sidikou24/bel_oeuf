@@ -205,6 +205,99 @@ def new_sale():
 
     return redirect(url_for('commercial.sales'))
 
+# Détails d'une vente - VERSION AMÉLIORÉE
+@bp.route('/sale/<int:commande_id>/details')
+@login_required
+@commercial_required
+def sale_details(commande_id):
+    """Retourne les détails complets d'une vente spécifique avec gestion d'erreurs améliorée"""
+    try:
+        commande = Commande.query.get_or_404(commande_id)
+        
+        # Vérifier que l'utilisateur a accès à cette commande
+        if commande.commercial_id != current_user.id and not current_user.is_admin:
+            return jsonify({'error': 'Accès non autorisé'}), 403
+        
+        # Préparer les données du client avec gestion des valeurs nulles
+        client_data = {
+            'id': commande.client.id,
+            'nom_complet': commande.client.nom_complet or 'Non spécifié',
+            'telephone': commande.client.telephone or '',
+            'email': commande.client.email or '',
+            'adresse': commande.client.adresse or 'Non spécifiée'
+        }
+        
+        # Calculer les montants avec protection contre les erreurs
+        montant_total = float(commande.montant_total or 0)
+        montant_paye = float(commande.montant_paye or 0)
+        montant_restant = max(0, montant_total - montant_paye)
+        pourcentage_paye = round((montant_paye / montant_total * 100) if montant_total > 0 else 0, 1)
+        
+        # Préparer les données de la commande
+        commande_data = {
+            'id': commande.id,
+            'numero_commande': commande.numero_commande or f'CMD-{commande.id}',
+            'date_creation': commande.date_creation.strftime('%d/%m/%Y à %H:%M'),
+            'client': client_data,
+            'montant_total': montant_total,
+            'montant_paye': montant_paye,
+            'montant_restant': montant_restant,
+            'pourcentage_paye': pourcentage_paye,
+            'statut': commande.statut or 'en_attente',
+            'date_livraison_prevue': commande.date_livraison_prevue.strftime('%d/%m/%Y') if commande.date_livraison_prevue else None,
+            'notes_commercial': commande.notes_commercial or '',
+            'articles': []
+        }
+        
+        # Ajouter les articles de la commande avec gestion des produits supprimés
+        for detail in commande.details:
+            try:
+                # Gérer le cas où le produit pourrait être supprimé
+                if detail.product:
+                    nom_produit = detail.product.name
+                    description = detail.product.description or ''
+                    unite = getattr(detail.product, 'unit', 'unité')
+                else:
+                    nom_produit = 'Produit supprimé'
+                    description = 'Ce produit n\'est plus disponible'
+                    unite = 'unité'
+                
+                article = {
+                    'id': detail.id,
+                    'product_id': detail.product_id,
+                    'nom_produit': nom_produit,
+                    'description': description,
+                    'quantite': int(detail.quantite or 0),
+                    'prix_unitaire': float(detail.prix_unitaire or 0),
+                    'sous_total': float(detail.sous_total or 0),
+                    'unite': unite
+                }
+                commande_data['articles'].append(article)
+                
+            except Exception as detail_error:
+                print(f"Erreur lors du traitement du détail {detail.id}: {detail_error}")
+                # Ajouter un article d'erreur plutôt que de faire échouer toute la requête
+                article_erreur = {
+                    'id': detail.id,
+                    'product_id': detail.product_id,
+                    'nom_produit': 'Erreur de chargement',
+                    'description': 'Impossible de charger cet article',
+                    'quantite': int(detail.quantite or 0),
+                    'prix_unitaire': float(detail.prix_unitaire or 0),
+                    'sous_total': float(detail.sous_total or 0),
+                    'unite': 'unité'
+                }
+                commande_data['articles'].append(article_erreur)
+        
+        return jsonify(commande_data)
+        
+    except Exception as e:
+        print(f"Erreur lors du chargement des détails de la commande {commande_id}: {str(e)}")
+        return jsonify({
+            'error': 'Erreur lors du chargement des détails',
+            'message': 'Une erreur technique est survenue. Veuillez réessayer.'
+        }), 500
+
 
 @bp.route('/commandes')
 @login_required
@@ -283,7 +376,6 @@ def modifier_client(client_id):
         db.session.rollback()
         #flash("Une erreur est survenue lors de la modification du client", 'danger')
     return redirect(url_for('commercial.clients'))
-
 
 #Début gestion Stock
 @bp.route('/stock')
@@ -644,3 +736,4 @@ def reports():
 @commercial_required
 def settings():
     return render_template('commercial/settings.html')
+

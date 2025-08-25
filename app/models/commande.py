@@ -24,8 +24,8 @@ class Commande(db.Model):
     statut = db.Column(db.String(20), nullable=False, default='en_attente')
     
     # Montants
-    montant_total = db.Column(db.Numeric(10, 2), nullable=False, default=0)
-    montant_paye = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    montant_total = db.Column(db.Integer, nullable=False, default=0)
+    montant_paye = db.Column(db.Integer, nullable=False, default=0)
     
     # Commentaires/Notes
     notes_commercial = db.Column(db.Text, nullable=True)
@@ -131,7 +131,7 @@ class Commande(db.Model):
         if not self.peut_etre_validee():
             raise ValueError("Cette commande ne peut pas être validée")
         
-        self.statut = 'validee'
+        self.statut = 'validée'
         self.responsable = responsable
         self.date_validation = datetime.utcnow()
         if commentaires:
@@ -142,7 +142,7 @@ class Commande(db.Model):
         if self.statut in ['livree']:
             raise ValueError("Cette commande ne peut plus être annulée")
         
-        self.statut = 'annulee'
+        self.statut = 'annulée'
         self.responsable = responsable
         self.date_validation = datetime.utcnow()
         self.motif_annulation = motif
