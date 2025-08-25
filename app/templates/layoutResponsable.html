@@ -32,6 +32,11 @@
                         <i data-lucide="credit-card"></i>
                         <span>Paiements</span>
                     </a>
+
+                     <a href="{{ url_for('responsable.purchases') }}" class="nav-item {% if request.endpoint == 'responsable.purchases' %}active{% endif %}">
+                        <i data-lucide="credit-card"></i>
+                        <span>Achats</span>
+                    </a>
                 {% else %}
                     <a href="{{ url_for('commercial.dashboard') }}" class="nav-item {% if request.endpoint == 'commercial.dashboard' %}active{% endif %}">
                         <i data-lucide="layout-dashboard"></i>
