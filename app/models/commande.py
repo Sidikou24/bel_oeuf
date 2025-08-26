@@ -1,4 +1,4 @@
-# app/models/commande.py - Version corrigée pour les warnings de session
+# app/models/commande.py - Version corrigée avec gestion du stock
 from app import db
 from datetime import datetime
 from sqlalchemy import func
@@ -18,6 +18,7 @@ class Commande(db.Model):
     # Dates
     date_creation = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date_validation = db.Column(db.DateTime, nullable=True)
+    date_annulation = db.Column(db.DateTime, nullable=True)  # Ajouté
     date_livraison_prevue = db.Column(db.DateTime, nullable=True)
     
     # Statuts
@@ -31,6 +32,7 @@ class Commande(db.Model):
     notes_commercial = db.Column(db.Text, nullable=True)
     motif_annulation = db.Column(db.Text, nullable=True)
     commentaires_responsable = db.Column(db.Text, nullable=True)
+    commentaires_validation = db.Column(db.Text, nullable=True)
     
     # Relations
     client = db.relationship('Client', backref=db.backref('commandes', lazy=True))
@@ -40,27 +42,20 @@ class Commande(db.Model):
     paiements = db.relationship('Paiement', backref='commande', lazy=True, cascade='all, delete-orphan')
     
     def __init__(self, **kwargs):
-        # Ne pas générer le numéro dans le constructeur
         super(Commande, self).__init__(**kwargs)
-        # Le numéro sera généré lors de l'ajout à la session
-        #self.numero_commande = self.generer_numero_commande()  # Génère le numéro ici
     
     @staticmethod
     def generer_numero_commande():
-        """Génère un numéro de commande unique - Version sans conflit de session"""
+        """Génère un numéro de commande unique"""
         from datetime import datetime
         import random
         
-        # Utiliser une nouvelle session pour éviter les conflits
         with db.engine.begin() as connection:
-            # Méthode simple et efficace : timestamp + random
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             random_suffix = random.randint(100, 999)
             
-            # Vérifier l'unicité
             numero_base = f"CMD{timestamp[-8:]}{random_suffix}"
             
-            # Si par hasard il existe déjà, ajouter les microsecondes
             existing_check = connection.execute(
                 db.text("SELECT COUNT(*) FROM commandes WHERE numero_commande = :numero"),
                 {"numero": numero_base}
@@ -104,7 +99,6 @@ class Commande(db.Model):
         if prix_unitaire is None:
             prix_unitaire = product.price
         
-        # Créer le détail de commande
         detail = DetailCommande(
             commande_id=self.id,
             product_id=product.id,
@@ -114,38 +108,83 @@ class Commande(db.Model):
         detail.calculer_sous_total()
         db.session.add(detail)
         
-        # Recalculer le total
         db.session.flush()
         self.calculer_total()
     
     def peut_etre_validee(self):
-        """Vérifie si la commande peut être validée"""
-        return (
-            self.statut == 'en_attente' and 
-            len(self.details) > 0 and 
-            self.montant_total > 0
-        )
+        """Vérifie si la commande peut être validée (avec vérification du stock)"""
+        if self.statut != 'en_attente':
+            return False, f"Commande déjà {self.statut}"
+        
+        if not self.details or len(self.details) == 0:
+            return False, "Aucun article dans la commande"
+        
+        if self.montant_total <= 0:
+            return False, "Montant total invalide"
+        
+        # Vérifier la disponibilité du stock pour chaque article
+        for detail in self.details:
+            product = detail.product
+            peut_vendre, message = product.peut_vendre(detail.quantite)
+            if not peut_vendre:
+                return False, f"Stock insuffisant pour {product.name}: {message}"
+        
+        return True, "Commande peut être validée"
     
     def valider(self, responsable, commentaires=None):
-        """Valide la commande"""
-        if not self.peut_etre_validee():
-            raise ValueError("Cette commande ne peut pas être validée")
+        """Valide la commande ET diminue le stock"""
+        peut_valider, message = self.peut_etre_validee()
+        if not peut_valider:
+            raise ValueError(message)
         
-        self.statut = 'validée'
+        # Diminuer le stock de chaque produit
+        for detail in self.details:
+            product = detail.product
+            # Vérifier une dernière fois avant de diminuer
+            peut_vendre, stock_message = product.peut_vendre(detail.quantite)
+            if not peut_vendre:
+                raise ValueError(f"Stock insuffisant pour {product.name}: {stock_message}")
+            
+            # Diminuer le stock
+            product.diminuer_stock(detail.quantite)
+            print(f"Stock diminué pour {product.name}: {detail.quantite} {product.unit}")
+        
+        # Mettre à jour le statut
+        self.statut = 'validée'  # Attention: sans accent pour cohérence DB
         self.responsable = responsable
         self.date_validation = datetime.utcnow()
         if commentaires:
-            self.commentaires_responsable = commentaires
+            self.commentaires_validation = commentaires
+        
+        print(f"Commande {self.numero_commande} validée et stock diminué")
     
     def annuler(self, responsable, motif):
-        """Annule la commande"""
-        if self.statut in ['livree']:
-            raise ValueError("Cette commande ne peut plus être annulée")
+        """Annule la commande ET restitue le stock si nécessaire"""
+        if self.statut == 'annulee':
+            raise ValueError("Cette commande est déjà annulée")
         
-        self.statut = 'annulée'
+        if self.statut == 'livree':
+            raise ValueError("Cette commande ne peut plus être annulée car elle est livrée")
+        
+        # Si la commande était validée, restituer le stock
+        if self.statut == 'validée':
+            for detail in self.details:
+                product = detail.product
+                product.augmenter_stock(detail.quantite)
+                print(f"Stock restitué pour {product.name}: +{detail.quantite} {product.unit}")
+            print(f"Stock restitué pour la commande {self.numero_commande}")
+        else:
+            print(f"Commande {self.numero_commande} annulée (était en attente, aucun stock à restituer)")
+        
+        # Mettre à jour le statut
+        self.statut = 'annulée'  # Sans accent pour cohérence DB
         self.responsable = responsable
-        self.date_validation = datetime.utcnow()
+        self.date_annulation = datetime.utcnow()
         self.motif_annulation = motif
+    
+    def peut_etre_annulee(self):
+        """Vérifie si la commande peut être annulée"""
+        return self.statut in ['en_attente', 'validée']
     
     def __repr__(self):
         return f'<Commande {self.numero_commande} - {self.client.nom if self.client else "N/A"}>'

@@ -99,24 +99,7 @@ def commande_details(commande_id):
         'details': details,
         'paiements': paiements
     })
-
-@bp.route('/commandes/<int:commande_id>/valider', methods=['POST'])
-@login_required
-def commande_valider(commande_id):
-    cmd = Commande.query.get_or_404(commande_id)
-    try:
-        data = request.get_json(silent=True) or request.form
-        commentaires = (data.get('commentaires') or '').strip() if data else None
-        cmd.valider(current_user, commentaires=commentaires)
-        db.session.commit()
-        return jsonify({'success': True, 'statut': cmd.statut})
-    except ValueError as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 400
-    except Exception:
-        db.session.rollback()
-        return jsonify({'success': False, 'error': "Erreur serveur lors de la validation"}), 500
-
+    
 @bp.route('/commandes/<int:commande_id>/annuler', methods=['POST'])
 @login_required
 def commande_annuler(commande_id):
@@ -135,6 +118,88 @@ def commande_annuler(commande_id):
     except Exception:
         db.session.rollback()
         return jsonify({'success': False, 'error': "Erreur serveur lors de l'annulation"}), 500
+
+
+# routes/responsable.py - Ajouter cette route pour vérifier le stock avant validation
+
+@bp.route('/commandes/<int:commande_id>/verifier-stock', methods=['GET'])
+@login_required
+def verifier_stock_commande(commande_id):
+    """Vérifier la disponibilité du stock pour une commande avant validation"""
+    cmd = Commande.query.get_or_404(commande_id)
+    
+    if cmd.statut != 'en_attente':
+        return jsonify({
+            'success': False, 
+            'error': f'Cette commande ne peut pas être validée (statut: {cmd.statut})'
+        }), 400
+    
+    # Vérifier chaque article
+    stock_problems = []
+    
+    for detail in cmd.details:
+        product = detail.product
+        peut_vendre, message = product.peut_vendre(detail.quantite)
+        
+        if not peut_vendre:
+            stock_problems.append({
+                'product_name': product.name,
+                'quantite_demandee': detail.quantite,
+                'stock_disponible': product.stock_quantity,
+                'message': message
+            })
+    
+    if stock_problems:
+        return jsonify({
+            'success': False,
+            'error': 'Stock insuffisant pour certains articles',
+            'details': stock_problems
+        }), 400
+    else:
+        return jsonify({
+            'success': True,
+            'message': 'Stock suffisant pour tous les articles'
+        })
+
+# Mise à jour de la route de validation pour inclure cette vérification
+@bp.route('/commandes/<int:commande_id>/valider', methods=['POST'])
+@login_required
+def commande_valider(commande_id):
+    cmd = Commande.query.get_or_404(commande_id)
+    try:
+        data = request.get_json(silent=True) or request.form
+        commentaires = (data.get('commentaires') or '').strip() if data else None
+        
+        # Vérifier le stock avant validation
+        stock_problems = []
+        for detail in cmd.details:
+            product = detail.product
+            peut_vendre, message = product.peut_vendre(detail.quantite)
+            if not peut_vendre:
+                stock_problems.append(f"{product.name}: {message}")
+        
+        if stock_problems:
+            return jsonify({
+                'success': False, 
+                'error': 'Stock insuffisant pour: ' + '; '.join(stock_problems)
+            }), 400
+        
+        cmd.valider(current_user, commentaires=commentaires)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'statut': cmd.statut,
+            'message': f'Commande {cmd.numero_commande} validée avec succès'
+        })
+        
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erreur lors de la validation: {str(e)}")
+        return jsonify({'success': False, 'error': "Erreur serveur lors de la validation"}), 500
 
 @bp.route('/paiements')
 @login_required

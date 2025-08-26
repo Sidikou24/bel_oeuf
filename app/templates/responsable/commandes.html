@@ -23,28 +23,64 @@
                 </div>
             </div>
         </div>
-
-        
-        
+        <div class="card border-warning bg-warning/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">En attente</p>
+                        <p class="text-2xl font-bold text-warning">{{ commandes_en_attente or 0 }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <i data-lucide="clock" class="w-4 h-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-success bg-success/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Validées</p>
+                        <p class="text-2xl font-bold text-success">{{ commandes_validees or 0 }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-destructive bg-destructive/5">
+            <div class="card-content">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-muted-foreground">Annulées</p>
+                        <p class="text-2xl font-bold text-destructive">{{ commandes_annulees or 0 }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-destructive/20 flex items-center justify-center">
+                        <i data-lucide="x-circle" class="w-4 h-4 text-destructive"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="card">
         <div class="card-content">
-                        <div class="flex items-center justify-between gap-4">
-                            <form method="get" action="{{ url_for('responsable.commandes') }}" class="flex items-center gap-2">
-                                <div class="search-container">
-                                    <i data-lucide="search" class="search-icon"></i>
-                                    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher (commande ou client)" class="search-input" style="width: 280px;">
-                                </div>
-                                <select name="statut" class="input">
-                                    <option value="tous" {% if statut=='tous' %}selected{% endif %}>Tous les statuts</option>
-                                    <option value="en_cours" {% if statut=='en_cours' %}selected{% endif %}>En cours</option>
-                                    <option value="validée" {% if statut=='validée' %}selected{% endif %}>Validée</option>
-                                    <option value="annulée" {% if statut=='annulée' %}selected{% endif %}>Annulée</option>
-                                </select>
-                                <button class="btn btn-outline" type="submit">Filtrer</button>
-                            </form>
-                        </div>
+            <div class="flex items-center justify-between gap-4">
+                <form method="get" action="{{ url_for('responsable.commandes') }}" class="flex items-center gap-2">
+                    <div class="search-container">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" name="q" value="{{ q }}" placeholder="Rechercher (commande ou client)" class="search-input" style="width: 280px;">
+                    </div>
+                    <select name="statut" class="input">
+                        <option value="tous" {% if statut=='tous' %}selected{% endif %}>Tous les statuts</option>
+                        <option value="en_attente" {% if statut=='en_attente' %}selected{% endif %}>En attente</option>
+                        <option value="validée" {% if statut=='validée' %}selected{% endif %}>Validée</option>
+                        <option value="annulée" {% if statut=='annulée' %}selected{% endif %}>Annulée</option>
+                    </select>
+                    <button class="btn btn-outline" type="submit">Filtrer</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -53,9 +89,10 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>ID commande</th>
+                        <th>N° Commande</th>
                         <th>Client</th>
-                        <th>Date</th>
+                        <th>Commercial</th>
+                        <th>Date création</th>
                         <th>Montant total</th>
                         <th>Statut</th>
                         <th>Paiement</th>
@@ -64,41 +101,67 @@
                 </thead>
                 <tbody id="ordersBody">
                 {% for cmd in commandes %}
-                    <tr data-status="{{ cmd.statut }}">
-                        <td>{{ cmd.numero_commande }}</td>
+                    <tr data-status="{{ cmd.statut }}" data-commande-id="{{ cmd.id }}">
+                        <td class="font-medium">{{ cmd.numero_commande }}</td>
                         <td>{{ cmd.client.nom }} {{ cmd.client.prenom }}</td>
-                        <td>{{ cmd.date_creation.strftime('%d/%m/%Y') if cmd.date_creation else '' }}</td>
-                        <td>{{ '%.0f'|format(cmd.montant_total) }} FCFA</td>
+                        <td>{{ cmd.commercial.nom }} {{ cmd.commercial.prenom }}</td>
+                        <td>{{ cmd.date_creation.strftime('%d/%m/%Y %H:%M') if cmd.date_creation else '' }}</td>
+                        <td class="font-medium">{{ '%.0f'|format(cmd.montant_total) }} FCFA</td>
                         <td>
                             {% if cmd.statut == 'validée' %}
-                                <span class="badge badge-success">Validée</span>
+                                <span class="badge badge-success">
+                                    <i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>
+                                    Validée
+                                </span>
                             {% elif cmd.statut == 'annulée' %}
-                                <span class="badge badge-destructive">Annulée</span>
+                                <span class="badge badge-destructive">
+                                    <i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>
+                                    Annulée
+                                </span>
                             {% elif cmd.statut == 'en_attente' %}
-                                <span class="badge">En cours</span>
+                                <span class="badge badge-warning">
+                                    <i data-lucide="clock" class="w-3 h-3 mr-1"></i>
+                                    En attente
+                                </span>
                             {% else %}
                                 <span class="badge">{{ cmd.statut }}</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="flex items-center gap-2">
-                                <div class="w-24 h-2 rounded bg-gray-200 overflow-hidden">
-                                    <div class="h-2 bg-primary" style="width: {{ cmd.pourcentage_paye|int }}%;"></div>
+                                <div class="w-20 h-2 rounded bg-gray-200 overflow-hidden">
+                                    <div class="h-2 transition-all duration-300 {{ 'bg-success' if cmd.pourcentage_paye >= 100 else 'bg-warning' if cmd.pourcentage_paye >= 50 else 'bg-destructive' }}" 
+                                         style="width: {{ cmd.pourcentage_paye|int }}%;"></div>
                                 </div>
-                                <span class="text-sm text-muted-foreground">{{ cmd.pourcentage_paye|int }}%</span>
+                                <span class="text-xs text-muted-foreground min-w-8">{{ cmd.pourcentage_paye|int }}%</span>
                             </div>
                         </td>
                         <td>
-                            <div class="flex gap-2">
-                                <button class="btn btn-sm btn-ghost" title="Détails" onclick="openOrderDetailsById({{ cmd.id }})"><i data-lucide='eye' class='w-3 h-3'></i></button>
-                                <button class="btn btn-sm btn-outline" title="Validée" {% if cmd.statut != 'en_attente' %}disabled{% endif %} onclick="openValidateModalById({{ cmd.id }})"><i data-lucide='check' class='w-3 h-3'></i></button>
-                                <button class="btn btn-sm btn-outline" title="Annuler" {% if cmd.statut == 'annulée' %}disabled{% endif %} onclick="openCancelModalById({{ cmd.id }})"><i data-lucide='x' class='w-3 h-3'></i></button>
+                            <div class="flex gap-1">
+                                <button class="btn btn-sm btn-ghost" title="Détails" onclick="openOrderDetailsById({{ cmd.id }})">
+                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                </button>
+                                {% if cmd.statut == 'en_attente' %}
+                                    <button class="btn btn-sm btn-outline text-success border-success hover:bg-success hover:text-white" 
+                                            title="Valider" onclick="openValidateModalById({{ cmd.id }})">
+                                        <i data-lucide="check" class="w-3 h-3"></i>
+                                    </button>
+                                {% endif %}
+                                {% if cmd.statut != 'annulee' %}
+                                    <button class="btn btn-sm btn-outline text-destructive border-destructive hover:bg-destructive hover:text-white" 
+                                            title="Annuler" onclick="openCancelModalById({{ cmd.id }})">
+                                        <i data-lucide="x" class="w-3 h-3"></i>
+                                    </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted-foreground">Aucune commande trouvée.</td>
+                        <td colspan="8" class="text-center text-muted-foreground py-8">
+                            <i data-lucide="package-x" class="w-8 h-8 mx-auto mb-2"></i>
+                            <p>Aucune commande trouvée.</p>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -109,6 +172,7 @@
     <div class="flex items-center justify-between p-4">
         <div class="text-sm text-muted-foreground">
             Page {{ pagination.page }} / {{ pagination.pages if pagination.pages else 1 }}
+            ({{ pagination.total }} commande{{ 's' if pagination.total != 1 else '' }})
         </div>
         <div class="flex gap-2">
             {% if pagination.has_prev %}
@@ -130,6 +194,58 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.lucide) lucide.createIcons();
+            
+            // Fonction pour mettre à jour l'affichage après une action
+            window.refreshCommandeRow = function(commandeId, newStatus) {
+                const row = document.querySelector(`tr[data-commande-id="${commandeId}"]`);
+                if (row) {
+                    const statusCell = row.querySelector('td:nth-child(6)');
+                    const actionsCell = row.querySelector('td:nth-child(8)');
+                    
+                    // Mettre à jour le statut
+                    let statusHtml = '';
+                    if (newStatus === 'validée') {
+                        statusHtml = '<span class="badge badge-success"><i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Validée</span>';
+                    } else if (newStatus === 'annulée') {
+                        statusHtml = '<span class="badge badge-destructive"><i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Annulée</span>';
+                    } else if (newStatus === 'en_attente') {
+                        statusHtml = '<span class="badge badge-warning"><i data-lucide="clock" class="w-3 h-3 mr-1"></i>En attente</span>';
+                    }
+                    statusCell.innerHTML = statusHtml;
+                    
+                    // Mettre à jour les boutons d'action
+                    let actionsHtml = `
+                        <div class="flex gap-1">
+                            <button class="btn btn-sm btn-ghost" title="Détails" onclick="openOrderDetailsById(${commandeId})">
+                                <i data-lucide="eye" class="w-3 h-3"></i>
+                            </button>
+                    `;
+                    
+                    if (newStatus === 'en_attente') {
+                        actionsHtml += `
+                            <button class="btn btn-sm btn-outline text-success border-success hover:bg-success hover:text-white" 
+                                    title="Valider" onclick="openValidateModalById(${commandeId})">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                            </button>
+                        `;
+                    }
+                    
+                    if (newStatus !== 'annulee') {
+                        actionsHtml += `
+                            <button class="btn btn-sm btn-outline text-destructive border-destructive hover:bg-destructive hover:text-white" 
+                                    title="Annuler" onclick="openCancelModalById(${commandeId})">
+                                <i data-lucide="x" class="w-3 h-3"></i>
+                            </button>
+                        `;
+                    }
+                    
+                    actionsHtml += '</div>';
+                    actionsCell.innerHTML = actionsHtml;
+                    
+                    // Recharger les icônes
+                    if (window.lucide) lucide.createIcons();
+                }
+            };
         });
     </script>
 </div>

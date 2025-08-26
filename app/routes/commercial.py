@@ -60,7 +60,7 @@ def sales():
     )
 
 # Création d'une nouvelle vente
-# routes/commercial.py - Version corrigée pour les warnings de session
+# routes/commercial.py - Version corrigée pour la gestion du stock
 @bp.route('/sales/new', methods=['POST'])
 @login_required
 @commercial_required
@@ -110,9 +110,9 @@ def new_sale():
         commande = Commande(
             client=client,
             commercial=current_user,
-            statut="en_attente",
+            statut="en_attente",  # Statut initial
             montant_paye=montant_paye_float,
-            numero_commande=Commande.generer_numero_commande()  # Générer le numéro ici
+            numero_commande=Commande.generer_numero_commande()
         )
 
         # Parser la date de livraison si fournie
@@ -154,10 +154,10 @@ def new_sale():
                     flash(f"Produit avec ID {product_id} introuvable", "warning")
                     continue
 
-                # Vérifier le stock
+                # Vérifier le stock MAIS NE PAS LE DIMINUER ENCORE
                 peut_vendre, message = product.peut_vendre(quantite)
                 if not peut_vendre:
-                    flash(message, "warning")  # Affiche le message personnalisé
+                    flash(message, "warning")
                     continue
 
                 # Créer le détail de commande
@@ -172,9 +172,8 @@ def new_sale():
                 detail.calculer_sous_total()
                 db.session.add(detail)
 
-                # Mettre à jour le stock
-                if hasattr(product, 'diminuer_stock'):
-                    product.diminuer_stock(quantite)
+                # ❌ NE PLUS DIMINUER LE STOCK ICI
+                # Le stock sera diminué uniquement à la validation
 
                 total_calcule += float(detail.sous_total)
                 articles_ajoutes += 1
@@ -195,7 +194,7 @@ def new_sale():
         # 10. Commit final
         db.session.commit()
 
-        #flash(f"Commande {commande.numero_commande} créée avec succès ✅ ({articles_ajoutes} articles)", "success")
+        flash(f"Commande {commande.numero_commande} créée avec succès ✅ ({articles_ajoutes} articles) - En attente de validation", "success")
         print(f"Commande créée: {commande.numero_commande}, Total: {commande.montant_total} FCFA")
 
     except Exception as e:
